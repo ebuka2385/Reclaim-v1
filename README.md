@@ -34,7 +34,7 @@ reclaim/
 
 1. **Clone and install dependencies:**
    ```bash
-   pnpm install
+   npm install
    ```
 
 2. **Set up the backend:**
@@ -50,8 +50,8 @@ reclaim/
 
 3. **Initialize the database:**
    ```bash
-   pnpm -C backend prisma:generate
-   pnpm -C backend prisma:migrate
+   npm -C backend prisma:generate
+   npm -C backend prisma:migrate
    ```
 
 4. **Set up the mobile app:**
@@ -68,12 +68,12 @@ reclaim/
 
    **Backend:**
    ```bash
-   pnpm -C backend dev
+   npm -C backend dev
    ```
 
    **Mobile (in a new terminal):**
    ```bash
-   pnpm -C mobile dev
+   npm -C mobile dev
    ```
 
    Then press `i` to open iOS simulator, or scan the QR code with Expo Go app.
@@ -82,24 +82,24 @@ reclaim/
 
 ### Run both servers concurrently:
 ```bash
-pnpm dev
+npm dev
 ```
 
 ### Backend Commands
 ```bash
-pnpm -C backend dev              # Start dev server
-pnpm -C backend build            # Build for production
-pnpm -C backend start            # Start production server
-pnpm -C backend prisma:generate  # Generate Prisma client
-pnpm -C backend prisma:migrate   # Run database migrations
+npm -C backend dev              # Start dev server
+npm -C backend build            # Build for production
+npm -C backend start            # Start production server
+npm -C backend prisma:generate  # Generate Prisma client
+npm -C backend prisma:migrate   # Run database migrations
 ```
 
 ### Mobile Commands
 ```bash
-pnpm -C mobile dev      # Start Expo dev server
-pnpm -C mobile ios      # Run on iOS
-pnpm -C mobile android  # Run on Android
-pnpm -C mobile lint     # Run ESLint
+npm -C mobile dev      # Start Expo dev server
+npm -C mobile ios      # Run on iOS
+npm -C mobile android  # Run on Android
+npm -C mobile lint     # Run ESLint
 ```
 
 ## Tech Stack

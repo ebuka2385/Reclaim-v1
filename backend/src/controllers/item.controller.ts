@@ -34,7 +34,7 @@ export class ItemController {
   async createItem(req: Request, res: Response): Promise<void> {
     try {
       const { title, description, status } = req.body as CreateItemDto;
-      
+
       if (!title || !description || !status) {
         res.status(400).json({ error: 'Missing required fields: title, description, status' });
         return;

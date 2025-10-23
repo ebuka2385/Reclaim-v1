@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import itemRoutes from './item.routes';
 
-const router = Router();
+const router: import('express').Router = Router();
 
 // Health check
 router.get('/health', (_req, res) => {

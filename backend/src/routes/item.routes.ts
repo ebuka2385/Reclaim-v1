@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { itemController } from '../controllers/item.controller';
 
-const router = Router();
+const router: import('express').Router = Router();
 
 // GET /items - Get all items
 router.get('/', (req, res) => itemController.getAllItems(req, res));

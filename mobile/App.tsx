@@ -1,16 +1,42 @@
 import { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { HomeScreen, ReportItemScreen, ViewItemsScreen } from './src/screens';
+import { 
+  LoginScreen, 
+  HomeScreen, 
+  ReportItemScreen, 
+  SearchScreen, 
+  MapScreen, 
+  NotificationsScreen, 
+  MyItemsScreen 
+} from './src/screens';
 import BottomNav from './src/screens/components/BottomNav';
 import { Screen } from './src/types';
 
 export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [screen, setScreen] = useState<Screen>('home');
 
+  if (!isLoggedIn) {
+    return <LoginScreen onLogin={() => setIsLoggedIn(true)} />;
+  }
+
   const renderScreen = () => {
-    if (screen === 'home') return <HomeScreen />;
-    if (screen === 'report') return <ReportItemScreen />;
-    return <ViewItemsScreen />;
+    switch (screen) {
+      case 'home':
+        return <HomeScreen onNavigate={setScreen} />;
+      case 'report':
+        return <ReportItemScreen />;
+      case 'search':
+        return <SearchScreen />;
+      case 'map':
+        return <MapScreen />;
+      case 'notifications':
+        return <NotificationsScreen />;
+      case 'myitems':
+        return <MyItemsScreen />;
+      default:
+        return <HomeScreen onNavigate={setScreen} />;
+    }
   };
 
   return (

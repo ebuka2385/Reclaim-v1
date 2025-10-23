@@ -21,21 +21,31 @@ export default function BottomNav({ currentScreen, onNavigate }: BottomNavProps)
 
       <TouchableOpacity 
         style={styles.tab}
-        onPress={() => onNavigate('report')}
+        onPress={() => onNavigate('search')}
       >
-        <Text style={styles.icon}>➕</Text>
-        <Text style={[styles.label, currentScreen === 'report' && styles.activeLabel]}>
-          Report
+        <Text style={styles.icon}>🔍</Text>
+        <Text style={[styles.label, currentScreen === 'search' && styles.activeLabel]}>
+          Search
         </Text>
       </TouchableOpacity>
 
       <TouchableOpacity 
         style={styles.tab}
-        onPress={() => onNavigate('items')}
+        onPress={() => onNavigate('map')}
       >
-        <Text style={styles.icon}>📋</Text>
-        <Text style={[styles.label, currentScreen === 'items' && styles.activeLabel]}>
-          Items
+        <Text style={styles.icon}>🗺️</Text>
+        <Text style={[styles.label, currentScreen === 'map' && styles.activeLabel]}>
+          Map
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        style={styles.tab}
+        onPress={() => onNavigate('notifications')}
+      >
+        <Text style={styles.icon}>🔔</Text>
+        <Text style={[styles.label, currentScreen === 'notifications' && styles.activeLabel]}>
+          Alerts
         </Text>
       </TouchableOpacity>
     </View>
@@ -45,9 +55,7 @@ export default function BottomNav({ currentScreen, onNavigate }: BottomNavProps)
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
+    backgroundColor: '#003071',
     paddingTop: 10,
     paddingBottom: 25,
   },
@@ -62,10 +70,10 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 12,
-    color: '#666',
+    color: '#b8c5d6',
   },
   activeLabel: {
-    color: '#3b82f6',
+    color: '#fff',
     fontWeight: '600',
   },
 });

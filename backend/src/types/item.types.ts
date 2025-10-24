@@ -19,3 +19,7 @@ export interface CreateItemDto {
   status: ItemStatus;
 }
 
+export interface UpdateItemStatusDto {
+  status: ItemStatus;
+}
+

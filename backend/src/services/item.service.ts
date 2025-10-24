@@ -1,60 +1,30 @@
-import { PrismaClient } from '@prisma/client';
-import { Item, CreateItemDto, ItemStatus } from '../types/item.types';
+import { PrismaClient, Prisma, Item as DataItem } from '@prisma/client';
+// If you also need your DTOs/enums, import them separately:
+import type { CreateItemDto } from '../types/item.types';
+import { ItemStatus as DtoItemStatus } from '../types/item.types';
 
 const prisma = new PrismaClient();
 
 export class ItemService {
   // Get all items (mock data for now)
-  async getAllItems(): Promise<Item[]> {
-    // TODO: Replace with actual Prisma query when ready
-    // const items = await prisma.item.findMany({ include: { user: true } });
+  async getAllItems(): Promise<DataItem[]> {
+    const sortDirection: Prisma.SortOrder = 'desc';
+
+    const items = await prisma.item.findMany({
+      orderBy: { createdAt: sortDirection },
+    });
     
-    return [
-      {
-        id: '1',
-        title: 'Blue Backpack',
-        description: 'Lost near library, has a laptop inside',
-        status: ItemStatus.LOST,
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: '2',
-        title: 'iPhone 15 Pro',
-        description: 'Found in cafeteria, black case',
-        status: ItemStatus.FOUND,
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: '3',
-        title: 'Student ID Card',
-        description: 'Found near gym entrance',
-        status: ItemStatus.FOUND,
-        createdAt: new Date().toISOString(),
-      },
-    ];
+    return items;
+
   }
 
   // Get item by ID
-  async getItemById(id: string): Promise<Item | null> {
-    const found = await prisma.item.findUnique({ where: { id } });
-
-    if(!found) 
-      return null;
-
-    else {
-      return {
-        id: found.id,
-        title: found.title,
-        description: found.description,
-        status: found.status as ItemStatus,
-        createdAt: found.createdAt.toISOString(),
-        userId: found.userId,
-      }
-    }
+  async getItemById(id: string): Promise<DataItem | null> {
+    return prisma.item.findUnique({ where: { id } });
   }
 
   // Create new item
-  async createItem(data: CreateItemDto): Promise<Item> {
+  async createItem(data: CreateItemDto): Promise<DataItem> {
     // TODO: Replace with actual Prisma query
     // const item = await prisma.item.create({ data: { ...data, userId } });
     
@@ -68,7 +38,7 @@ export class ItemService {
   }
 
   // Update item status
-  async updateItemStatus(id: string, status: ItemStatus): Promise<Item | null> {
+  async updateItemStatus(id: string, status: DtoItemStatus): Promise<DataItem | null> {
     // TODO: Replace with actual Prisma query
     // const item = await prisma.item.update({ where: { id }, data: { status } });
     

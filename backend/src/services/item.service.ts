@@ -30,7 +30,7 @@ export class ItemService {
       description: data.description,
       status: data.status as PrismaItemStatus,
       userId: data.userId,
-      //location: data.location,
+      location: data.location,
     } });
   }
 

@@ -36,11 +36,21 @@ export class ItemService {
 
   // Get item by ID
   async getItemById(id: string): Promise<Item | null> {
-    // TODO: Replace with actual Prisma query
-    // const item = await prisma.item.findUnique({ where: { id }, include: { user: true } });
-    
-    const items = await this.getAllItems();
-    return items.find((item) => item.id === id) || null;
+    const found = await prisma.item.findUnique({ where: { id } });
+
+    if(!found) 
+      return null;
+
+    else {
+      return {
+        id: found.id,
+        title: found.title,
+        description: found.description,
+        status: found.status as ItemStatus,
+        createdAt: found.createdAt.toISOString(),
+        userId: found.userId,
+      }
+    }
   }
 
   // Create new item

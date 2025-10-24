@@ -13,43 +13,30 @@ export default function ReportItemScreen({ onNavigate }: ReportItemScreenProps) 
   const [description, setDescription] = useState('');
 
   const handleSubmit = async () => {
-    console.log('📝 ReportItemScreen: Submit button pressed');
-    console.log('📝 ReportItemScreen: Form data:', { itemType, title, description });
-    
     if (!title.trim() || !description.trim()) {
-      console.log('❌ ReportItemScreen: Validation failed - missing fields');
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
-    console.log('✅ ReportItemScreen: Validation passed, submitting...');
     try {
       const itemData = {
         title: title.trim(),
         description: description.trim(),
         status: itemType,
-        userId: 'temp-user-id',
       };
       
-      console.log('📤 ReportItemScreen: Sending item data:', itemData);
       const response = await apiService.createItem(itemData);
-      console.log('✅ ReportItemScreen: Item created successfully:', response);
 
       // Check if the response contains an error
       if (response.error) {
-        console.log('❌ ReportItemScreen: Backend returned error:', response.error);
         Alert.alert('Error', response.error);
         return;
       }
 
       Alert.alert('Success', 'Item reported!', [
-        { text: 'OK', onPress: () => {
-          console.log('🔄 ReportItemScreen: Navigating to MyItems');
-          onNavigate('myitems');
-        }}
+        { text: 'OK', onPress: () => onNavigate('myitems') }
       ]);
     } catch (error) {
-      console.error('❌ ReportItemScreen: Submit failed:', error);
       Alert.alert('Error', 'Failed to submit');
     }
   };

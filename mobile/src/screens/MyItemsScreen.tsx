@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { Item } from '../types';
 import { apiService } from '../services/api';
 
+const DEFAULT_USER_ID = 'temp-user-id'; // Default user for demo
+
 export default function MyItemsScreen() {
   const [myItems, setMyItems] = useState<Item[]>([]);
 
@@ -10,8 +12,8 @@ export default function MyItemsScreen() {
     try {
       const response = await apiService.getAllItems();
       // Filter by current user
-      const userItems = (response.items || []).filter(item => 
-        item.userId === 'temp-user-id'
+      const userItems = (response.items || []).filter((item: Item) => 
+        item.userId === DEFAULT_USER_ID
       );
       setMyItems(userItems);
     } catch (error) {
@@ -31,12 +33,9 @@ export default function MyItemsScreen() {
         style: 'destructive',
         onPress: async () => {
           try {
-            const success = await apiService.deleteItem(itemId);
-            console.log('✅ MyItemsScreen: Delete API call success:', success);
+            await apiService.deleteItem(itemId);
             setMyItems(prevItems => prevItems.filter(item => item.id !== itemId));
-            console.log('✅ MyItemsScreen: Item removed from local state');
           } catch (error) {
-            console.error('❌ MyItemsScreen: Delete failed:', error);
             Alert.alert('Error', 'Failed to delete');
           }
         }

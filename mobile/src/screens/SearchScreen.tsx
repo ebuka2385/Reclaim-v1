@@ -12,7 +12,7 @@ export default function SearchScreen() {
       const response = await apiService.getAllItems();
       setItems(response.items || []);
     } catch (error) {
-      console.error('❌ SearchScreen: Failed to load items:', error);
+      console.error('Failed to load items:', error);
     }
   };
 

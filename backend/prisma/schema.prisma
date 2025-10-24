@@ -11,24 +11,47 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
+  userId    String   @id @default(cuid())
   email     String   @unique
   name      String
   createdAt DateTime @default(now())
   items     Item[]
+  notifications Notification[]
 }
 
 model Item {
-  id          String     @id @default(cuid())
+  itemId      String     @id @default(cuid())
   title       String
   description String
   status      ItemStatus @default(LOST)
   createdAt   DateTime   @default(now())
   userId      String
-  user        User       @relation(fields: [userId], references: [id])
+  user        User       @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  archives    Archive[]
 
   @@index([userId])
   @@index([status])
+}
+
+model Notification {
+  notifId      String @id @default(cuid())
+  userId       String 
+  relatedUser         User @relation(fields : [userId], references : [userId], onDelete: Cascade)
+  message      String
+  timestamp    DateTime @default(now()) 
+  read         Boolean @default(false)
+
+  @@index([userId])
+}
+
+model Archive {
+  archiveId    String   @id @default(cuid())
+  itemId       String
+  item         Item     @relation(fields: [itemId], references: [itemId], onDelete: Cascade)
+  resolvedTime DateTime @default(now())
+  reason       String? //Optional field
+
+  @@index([itemId])
 }
 
 enum ItemStatus {

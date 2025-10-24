@@ -1,23 +1,29 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Item } from '../types';
+import { apiService } from '../services/api';
 
 export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [filter, setFilter] = useState<'ALL' | 'LOST' | 'FOUND'>('ALL');
+  const [items, setItems] = useState<Item[]>([]);
 
-  const items: Item[] = [
-    { id: '1', title: 'Blue Backpack', description: 'Lost near library', status: 'LOST', location: 'Kelvin Smith Library' },
-    { id: '2', title: 'iPhone 15 Pro', description: 'Found in cafeteria', status: 'FOUND', location: 'Leutner Commons' },
-    { id: '3', title: 'Student ID Card', description: 'Found near gym', status: 'FOUND', location: 'Veale Center' },
-  ];
+  const loadItems = async () => {
+    try {
+      const response = await apiService.getAllItems();
+      setItems(response.items || []);
+    } catch (error) {
+      console.error('❌ SearchScreen: Failed to load items:', error);
+    }
+  };
 
-  const filteredItems = items.filter(item => {
-    const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         item.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter = filter === 'ALL' || item.status === filter;
-    return matchesSearch && matchesFilter;
-  });
+  useEffect(() => {
+    loadItems();
+  }, []);
+
+  const filteredItems = items.filter(item => 
+    item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -28,31 +34,10 @@ export default function SearchScreen() {
       <View style={styles.searchSection}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Search by title or description..."
+          placeholder="Search items..."
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
-
-        <View style={styles.filters}>
-          <TouchableOpacity
-            style={[styles.filterButton, filter === 'ALL' && styles.activeFilter]}
-            onPress={() => setFilter('ALL')}
-          >
-            <Text style={[styles.filterText, filter === 'ALL' && styles.activeFilterText]}>All</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.filterButton, filter === 'LOST' && styles.activeFilter]}
-            onPress={() => setFilter('LOST')}
-          >
-            <Text style={[styles.filterText, filter === 'LOST' && styles.activeFilterText]}>Lost</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.filterButton, filter === 'FOUND' && styles.activeFilter]}
-            onPress={() => setFilter('FOUND')}
-          >
-            <Text style={[styles.filterText, filter === 'FOUND' && styles.activeFilterText]}>Found</Text>
-          </TouchableOpacity>
-        </View>
       </View>
 
       <ScrollView style={styles.scrollView}>
@@ -66,9 +51,6 @@ export default function SearchScreen() {
                 </View>
               </View>
               <Text style={styles.description}>{item.description}</Text>
-              {item.location && (
-                <Text style={styles.location}>📍 {item.location}</Text>
-              )}
             </View>
           ))}
         </View>
@@ -104,32 +86,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#d1d5db',
     fontSize: 16,
-    marginBottom: 12,
-  },
-  filters: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  filterButton: {
-    flex: 1,
-    padding: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    backgroundColor: '#fff',
-    alignItems: 'center',
-  },
-  activeFilter: {
-    backgroundColor: '#003071',
-    borderColor: '#003071',
-  },
-  filterText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#666',
-  },
-  activeFilterText: {
-    color: '#fff',
   },
   scrollView: {
     flex: 1,
@@ -180,10 +136,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     marginBottom: 4,
-  },
-  location: {
-    fontSize: 12,
-    color: '#003071',
   },
 });
 

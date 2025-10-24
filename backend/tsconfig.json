@@ -6,7 +6,6 @@
       "ES2022"
     ],
     "outDir": "./dist",
-    "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -18,10 +17,16 @@
     "sourceMap": true
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "tests/**/*",
+    "__mocks__/**/*"
   ],
   "exclude": [
     "node_modules",
     "dist"
+  ],
+  "types": [
+    "jest",
+    "node"
   ]
 }

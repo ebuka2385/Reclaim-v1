@@ -1,4 +1,4 @@
-import { prisma } from '../__mocks__/prismaclient';
+import { prisma } from '../../__mocks__/prismaclient';
 
 describe('Prisma Client Methods', () => {
   beforeEach(() => {
@@ -85,71 +85,71 @@ describe('Prisma Client Methods', () => {
     });
 
     // TODO: Implement these tests as you build more features
-    // it('should find items by status', async () => {
-    //   const mockItems = [
-    //     {
-    //       itemId: 'item1',
-    //       title: 'Lost Phone',
-    //       description: 'iPhone 14 Pro',
-    //       status: 'LOST',
-    //       createdAt: new Date(),
-    //       userId: 'user123',
-    //     },
-    //     {
-    //       itemId: 'item2',
-    //       title: 'Lost Wallet',
-    //       description: 'Brown leather wallet',
-    //       status: 'LOST',
-    //       createdAt: new Date(),
-    //       userId: 'user456',
-    //     },
-    //   ];
+    it('should find items by status', async () => {
+       const mockItems = [
+        {
+           itemId: 'item1',
+           title: 'Lost Phone',
+           description: 'iPhone 14 Pro',
+           status: 'LOST',
+           createdAt: new Date(),
+           userId: 'user123',
+         },
+         {
+           itemId: 'item2',
+           title: 'Lost Wallet',
+           description: 'Brown leather wallet',
+           status: 'LOST',
+           createdAt: new Date(),
+           userId: 'user456',
+         },
+       ];
 
-    //   (prisma.item.findMany as jest.Mock).mockResolvedValue(mockItems);
+       (prisma.item.findMany as jest.Mock).mockResolvedValue(mockItems);
 
-    //   const result = await prisma.item.findMany({
-    //     where: { status: 'LOST' },
-    //   });
+       const result = await prisma.item.findMany({
+         where: { status: 'LOST' },
+       });
 
-    //   expect(result).toEqual(mockItems);
-    //   expect(prisma.item.findMany).toHaveBeenCalledWith({
-    //     where: { status: 'LOST' },
-    //   });
-    // });
+       expect(result).toEqual(mockItems);
+       expect(prisma.item.findMany).toHaveBeenCalledWith({
+         where: { status: 'LOST' },
+       });
+     });
 
-    // it('should update item status', async () => {
-    //   const mockUpdatedItem = {
-    //     itemId: 'item123',
-    //     title: 'Lost Phone',
-    //     description: 'iPhone 14 Pro',
-    //     status: 'FOUND',
-    //     createdAt: new Date(),
-    //     userId: 'user123',
-    //   };
+     it('should update item status', async () => {
+       const mockUpdatedItem = {
+         itemId: 'item123',
+         title: 'Lost Phone',
+         description: 'iPhone 14 Pro',
+         status: 'FOUND',
+         createdAt: new Date(),
+         userId: 'user123',
+       };
 
-    //   (prisma.item.update as jest.Mock).mockResolvedValue(mockUpdatedItem);
+       (prisma.item.update as jest.Mock).mockResolvedValue(mockUpdatedItem);
 
-    //   const result = await prisma.item.update({
-    //     where: { itemId: 'item123' },
-    //     data: { status: 'FOUND' },
-    //   });
+       const result = await prisma.item.update({
+         where: { itemId: 'item123' },
+         data: { status: 'FOUND' },
+       });
 
-    //   expect(result).toEqual(mockUpdatedItem);
-    //   expect(prisma.item.update).toHaveBeenCalledWith({
-    //     where: { itemId: 'item123' },
-    //     data: { status: 'FOUND' },
-    //   });
-    // });
+       expect(result).toEqual(mockUpdatedItem);
+       expect(prisma.item.update).toHaveBeenCalledWith({
+         where: { itemId: 'item123' },
+         data: { status: 'FOUND' },
+       });
+     });
   });
 
-  // TODO: Remove these sections for now - implement when ready for notifications feature
+  // In Progress: Tests for Notification model
   // describe('Notification Model', () => {
-  //   // Notification tests will go here when you're ready to implement notifications
+  //   // Notification tests 
   // });
 
-  // TODO: Remove these sections for now - implement when ready for archive feature  
+  // In Progress: Tests for Archive model  
   // describe('Archive Model', () => {
-  //   // Archive tests will go here when you're ready to implement archives
+  //   // Archive tests 
   // });
 
   describe('Database Connection', () => {

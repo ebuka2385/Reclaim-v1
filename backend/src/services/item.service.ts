@@ -20,7 +20,7 @@ export class ItemService {
 
   // Get item by ID
   async getItemById(id: string): Promise<DataItem | null> {
-    return prisma.item.findUnique({ where: { id } });
+    return prisma.item.findUnique({ where: { itemId: id } });
   }
 
   // Create new item
@@ -29,18 +29,19 @@ export class ItemService {
     // const item = await prisma.item.create({ data: { ...data, userId } });
     
     return {
-      id: Math.random().toString(36).substring(7),
+      itemId: Math.random().toString(36).substring(7),
       title: data.title,
       description: data.description,
       status: data.status,
-      createdAt: new Date().toISOString(),
+      createdAt: new Date(),
+      userId: data.userId,
     };
   }
 
   // Update item status
   async updateItemStatus(id: string, status: DtoItemStatus): Promise<DataItem | null> {
     // TODO: Replace with actual Prisma query
-    // const item = await prisma.item.update({ where: { id }, data: { status } });
+    // const item = await prisma.item.update({ where: { itemId: id }, data: { status } });
     
     const item = await this.getItemById(id);
     if (!item) return null;
@@ -54,7 +55,7 @@ export class ItemService {
   // Delete item
   async deleteItem(id: string): Promise<boolean> {
     // TODO: Replace with actual Prisma query
-    // await prisma.item.delete({ where: { id } });
+    // await prisma.item.delete({ where: { itemId: id } });
     
     return true;
   }

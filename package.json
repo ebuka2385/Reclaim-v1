@@ -9,12 +9,14 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
   },
   "devDependencies": {
+    "@types/supertest": "^6.0.3",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "concurrently": "^8.2.2",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "prettier": "^3.2.5",
+    "supertest": "^7.1.4",
     "typescript": "^5.3.3"
   },
   "engines": {
@@ -22,4 +24,3 @@
     "pnpm": ">=8.0.0"
   }
 }
-

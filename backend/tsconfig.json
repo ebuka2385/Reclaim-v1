@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-  "module": "NodeNext",
+    "module": "NodeNext",
     "lib": [
       "ES2022"
     ],
@@ -11,10 +11,15 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-  "moduleResolution": "nodenext",
+    "moduleResolution": "nodenext",
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "isolatedModules": true,
+    "types": [
+      "jest",
+      "node"
+    ]
   },
   "include": [
     "src/**/*",
@@ -24,9 +29,5 @@
   "exclude": [
     "node_modules",
     "dist"
-  ],
-  "types": [
-    "jest",
-    "node"
   ]
 }

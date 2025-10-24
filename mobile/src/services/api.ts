@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://172.20.150.181:3000';
+const API_BASE_URL = 'http://172.20.71.2:3000';
 const DEFAULT_USER_ID = 'temp-user-id'; // Default user for demo
 
 export interface CreateItemRequest {

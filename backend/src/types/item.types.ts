@@ -11,7 +11,6 @@ export interface Item {
   status: ItemStatus;
   createdAt: string;
   userId?: string;
-  location: string;
 }
 
 export interface CreateItemDto {
@@ -19,7 +18,6 @@ export interface CreateItemDto {
   description: string;
   status: ItemStatus;
   userId: string;
-  location: string;
 }
 
 export interface UpdateItemStatusDto {

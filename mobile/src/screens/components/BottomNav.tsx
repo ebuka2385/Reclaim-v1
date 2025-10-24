@@ -1,4 +1,5 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Screen } from '../../types';
 
 interface BottomNavProps {
@@ -13,7 +14,12 @@ export default function BottomNav({ currentScreen, onNavigate }: BottomNavProps)
         style={styles.tab}
         onPress={() => onNavigate('home')}
       >
-        <Text style={styles.icon}>🏠</Text>
+        <Ionicons 
+          name={currentScreen === 'home' ? 'home' : 'home-outline'} 
+          size={24} 
+          color={currentScreen === 'home' ? '#fff' : '#b8c5d6'} 
+          style={styles.icon}
+        />
         <Text style={[styles.label, currentScreen === 'home' && styles.activeLabel]}>
           Home
         </Text>
@@ -23,7 +29,12 @@ export default function BottomNav({ currentScreen, onNavigate }: BottomNavProps)
         style={styles.tab}
         onPress={() => onNavigate('search')}
       >
-        <Text style={styles.icon}>🔍</Text>
+        <Ionicons 
+          name={currentScreen === 'search' ? 'search' : 'search-outline'} 
+          size={24} 
+          color={currentScreen === 'search' ? '#fff' : '#b8c5d6'} 
+          style={styles.icon}
+        />
         <Text style={[styles.label, currentScreen === 'search' && styles.activeLabel]}>
           Search
         </Text>
@@ -33,7 +44,12 @@ export default function BottomNav({ currentScreen, onNavigate }: BottomNavProps)
         style={styles.tab}
         onPress={() => onNavigate('map')}
       >
-        <Text style={styles.icon}>🗺️</Text>
+        <Ionicons 
+          name={currentScreen === 'map' ? 'map' : 'map-outline'} 
+          size={24} 
+          color={currentScreen === 'map' ? '#fff' : '#b8c5d6'} 
+          style={styles.icon}
+        />
         <Text style={[styles.label, currentScreen === 'map' && styles.activeLabel]}>
           Map
         </Text>
@@ -43,7 +59,12 @@ export default function BottomNav({ currentScreen, onNavigate }: BottomNavProps)
         style={styles.tab}
         onPress={() => onNavigate('notifications')}
       >
-        <Text style={styles.icon}>🔔</Text>
+        <Ionicons 
+          name={currentScreen === 'notifications' ? 'notifications' : 'notifications-outline'} 
+          size={24} 
+          color={currentScreen === 'notifications' ? '#fff' : '#b8c5d6'} 
+          style={styles.icon}
+        />
         <Text style={[styles.label, currentScreen === 'notifications' && styles.activeLabel]}>
           Alerts
         </Text>
@@ -65,7 +86,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   icon: {
-    fontSize: 24,
     marginBottom: 4,
   },
   label: {

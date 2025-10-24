@@ -48,7 +48,6 @@ export class ItemController {
       const item = await itemService.createItem({ title, description, status, userId: req.body.userId });
       res.status(201).json(item);
     } catch (error) {
-      console.error('❌ ItemController: createItem error:', error);
       res.status(500).json({ error: 'Failed to create item' });
     }
   }

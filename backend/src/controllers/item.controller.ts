@@ -44,8 +44,8 @@ export class ItemController {
         res.status(400).json({ error: 'Invalid status. Must be LOST, FOUND, or CLAIMED' });
         return;
       }
-      
-      const item = await itemService.createItem({ title, description, status, userId: req.body.userId });
+
+      const item = await itemService.createItem({ title, description, status, userId: req.body.userId, location: req.body.location });
       res.status(201).json(item);
     } catch (error) {
       res.status(500).json({ error: 'Failed to create item' });

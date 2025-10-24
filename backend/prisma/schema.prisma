@@ -26,10 +26,12 @@ model Item {
   createdAt   DateTime   @default(now())
   userId      String
   user        User       @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  location    String
   archives    Archive[]
 
   @@index([userId])
   @@index([status])
+  @@index([location])
 }
 
 model Notification {

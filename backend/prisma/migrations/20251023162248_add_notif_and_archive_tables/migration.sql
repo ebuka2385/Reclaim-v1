@@ -19,6 +19,7 @@ CREATE TABLE "Item" (
     "status" "ItemStatus" NOT NULL DEFAULT 'LOST',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "userId" TEXT NOT NULL,
+    "location" TEXT NOT NULL,
 
     CONSTRAINT "Item_pkey" PRIMARY KEY ("itemId")
 );

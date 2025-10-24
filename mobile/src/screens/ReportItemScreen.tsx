@@ -1,14 +1,44 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, Alert } from 'react-native';
 import { useState } from 'react';
+import { apiService } from '../services/api';
+import { Screen } from '../types';
 
-export default function ReportItemScreen() {
+interface ReportItemScreenProps {
+  onNavigate: (screen: Screen) => void;
+}
+
+export default function ReportItemScreen({ onNavigate }: ReportItemScreenProps) {
   const [itemType, setItemType] = useState<'LOST' | 'FOUND'>('LOST');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [location, setLocation] = useState('');
 
-  const handleSubmit = () => {
-    console.log('Submitting report:', { itemType, title, description, location });
+  const handleSubmit = async () => {
+    if (!title.trim() || !description.trim()) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    try {
+      const itemData = {
+        title: title.trim(),
+        description: description.trim(),
+        status: itemType,
+      };
+      
+      const response = await apiService.createItem(itemData);
+
+      // Check if the response contains an error
+      if (response.error) {
+        Alert.alert('Error', response.error);
+        return;
+      }
+
+      Alert.alert('Success', 'Item reported!', [
+        { text: 'OK', onPress: () => onNavigate('myitems') }
+      ]);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to submit');
+    }
   };
 
   return (
@@ -52,21 +82,6 @@ export default function ReportItemScreen() {
             multiline
             numberOfLines={4}
           />
-
-          <Text style={styles.label}>Location *</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="e.g. Kelvin Smith Library"
-            value={location}
-            onChangeText={setLocation}
-          />
-
-          <View style={styles.mapSection}>
-            <Text style={styles.mapLabel}>📍 Drop a pin on map</Text>
-            <View style={styles.mapPlaceholder}>
-              <Text style={styles.mapText}>Map integration coming soon</Text>
-            </View>
-          </View>
 
           <TouchableOpacity 
             style={styles.submitButton}
@@ -173,6 +188,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 24,
     marginBottom: 20,
+  },
+  submitButtonDisabled: {
+    backgroundColor: '#9ca3af',
   },
   submitButtonText: {
     color: '#fff',

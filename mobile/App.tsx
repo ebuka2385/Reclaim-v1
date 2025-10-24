@@ -25,7 +25,7 @@ export default function App() {
       case 'home':
         return <HomeScreen onNavigate={setScreen} />;
       case 'report':
-        return <ReportItemScreen />;
+        return <ReportItemScreen onNavigate={setScreen} />;
       case 'search':
         return <SearchScreen />;
       case 'map':

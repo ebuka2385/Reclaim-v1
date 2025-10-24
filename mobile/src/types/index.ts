@@ -7,6 +7,7 @@ export interface Item {
   status: 'LOST' | 'FOUND' | 'CLAIMED';
   location?: string;
   createdAt?: string;
+  userId?: string;
 }
 
 export interface ScreenProps {

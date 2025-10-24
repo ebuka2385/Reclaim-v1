@@ -1,11 +1,47 @@
-import { View, Text, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { useState, useEffect } from 'react';
 import { Item } from '../types';
+import { apiService } from '../services/api';
+
+const DEFAULT_USER_ID = 'temp-user-id'; // Default user for demo
 
 export default function MyItemsScreen() {
-  const myItems: Item[] = [
-    { id: '1', title: 'Blue Backpack', description: 'Lost near library', status: 'LOST', createdAt: '2 days ago' },
-    { id: '2', title: 'Water Bottle', description: 'Found in classroom', status: 'FOUND', createdAt: '1 week ago' },
-  ];
+  const [myItems, setMyItems] = useState<Item[]>([]);
+
+  const loadMyItems = async () => {
+    try {
+      const response = await apiService.getAllItems();
+      // Filter by current user
+      const userItems = (response.items || []).filter((item: Item) => 
+        item.userId === DEFAULT_USER_ID
+      );
+      setMyItems(userItems);
+    } catch (error) {
+      console.error('Failed to load items:', error);
+    }
+  };
+
+  useEffect(() => {
+    loadMyItems();
+  }, []);
+
+  const handleDeleteItem = async (itemId: string) => {
+    Alert.alert('Delete Item', 'Are you sure?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await apiService.deleteItem(itemId);
+            setMyItems(prevItems => prevItems.filter(item => item.id !== itemId));
+          } catch (error) {
+            Alert.alert('Error', 'Failed to delete');
+          }
+        }
+      }
+    ]);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -17,9 +53,7 @@ export default function MyItemsScreen() {
         <View style={styles.content}>
           {myItems.length === 0 ? (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyIcon}>📦</Text>
-              <Text style={styles.emptyTitle}>No items yet</Text>
-              <Text style={styles.emptyText}>Your reported items will appear here</Text>
+              <Text style={styles.emptyText}>No items yet</Text>
             </View>
           ) : (
             myItems.map((item) => (
@@ -31,7 +65,12 @@ export default function MyItemsScreen() {
                   </View>
                 </View>
                 <Text style={styles.description}>{item.description}</Text>
-                <Text style={styles.date}>{item.createdAt}</Text>
+                <TouchableOpacity 
+                  style={styles.deleteButton}
+                  onPress={() => handleDeleteItem(item.id)}
+                >
+                  <Text style={styles.deleteButtonText}>Delete</Text>
+                </TouchableOpacity>
               </View>
             ))
           )}
@@ -63,21 +102,10 @@ const styles = StyleSheet.create({
   },
   emptyState: {
     alignItems: 'center',
-    justifyContent: 'center',
     paddingVertical: 60,
   },
-  emptyIcon: {
-    fontSize: 64,
-    marginBottom: 16,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#111',
-    marginBottom: 8,
-  },
   emptyText: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#666',
   },
   card: {
@@ -122,11 +150,18 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 14,
     color: '#666',
-    marginBottom: 4,
+    marginBottom: 12,
   },
-  date: {
+  deleteButton: {
+    backgroundColor: '#fee2e2',
+    padding: 8,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+  },
+  deleteButtonText: {
     fontSize: 12,
-    color: '#9ca3af',
+    fontWeight: '600',
+    color: '#dc2626',
   },
 });
 

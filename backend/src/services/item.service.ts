@@ -36,24 +36,33 @@ export class ItemService {
 
   // Update item status
   async updateItemStatus(id: string, status: DtoItemStatus): Promise<DataItem | null> {
-    // TODO: Replace with actual Prisma query
-    // const item = await prisma.item.update({ where: { itemId: id }, data: { status } });
-    
-    const item = await this.getItemById(id);
-    if (!item) return null;
-    
-    return {
-      ...item,
-      status,
-    };
+    try {
+      const item = await prisma.item.update({ 
+        where: { itemId: id }, 
+        data: { status: status as PrismaItemStatus } 
+      });
+      return item;
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        // Record not found
+        return null;
+      }
+      throw error;
+    }
   }
 
   // Delete item
   async deleteItem(id: string): Promise<boolean> {
-    // TODO: Replace with actual Prisma query
-    // await prisma.item.delete({ where: { itemId: id } });
-    
-    return true;
+    try {
+      await prisma.item.delete({ where: { itemId: id } });
+      return true;
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        // Record not found
+        return false;
+      }
+      throw error;
+    }
   }
 }
 

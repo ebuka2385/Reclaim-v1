@@ -1,4 +1,5 @@
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Screen } from '../types';
 
 interface HomeScreenProps {
@@ -18,10 +19,10 @@ export default function HomeScreen({ onNavigate }: HomeScreenProps) {
         
         <View style={styles.quickLinks}>
           <TouchableOpacity 
-            style={[styles.card, styles.primaryCard]}
+            style={styles.card}
             onPress={() => onNavigate('report')}
           >
-            <Text style={styles.cardIcon}>📝</Text>
+            <Ionicons name="create-outline" size={32} color="#003071" style={styles.cardIcon} />
             <Text style={styles.cardTitle}>Report Item</Text>
             <Text style={styles.cardDesc}>Lost or found something?</Text>
           </TouchableOpacity>
@@ -30,7 +31,7 @@ export default function HomeScreen({ onNavigate }: HomeScreenProps) {
             style={styles.card}
             onPress={() => onNavigate('search')}
           >
-            <Text style={styles.cardIcon}>🔍</Text>
+            <Ionicons name="search-outline" size={32} color="#003071" style={styles.cardIcon} />
             <Text style={styles.cardTitle}>Search Items</Text>
             <Text style={styles.cardDesc}>Find what you're looking for</Text>
           </TouchableOpacity>
@@ -39,7 +40,7 @@ export default function HomeScreen({ onNavigate }: HomeScreenProps) {
             style={styles.card}
             onPress={() => onNavigate('myitems')}
           >
-            <Text style={styles.cardIcon}>📦</Text>
+            <Ionicons name="cube-outline" size={32} color="#003071" style={styles.cardIcon} />
             <Text style={styles.cardTitle}>My Items</Text>
             <Text style={styles.cardDesc}>View your reports</Text>
           </TouchableOpacity>
@@ -93,12 +94,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  primaryCard: {
-    backgroundColor: '#e6f0ff',
-    borderColor: '#003071',
-  },
   cardIcon: {
-    fontSize: 32,
     marginBottom: 8,
   },
   cardTitle: {

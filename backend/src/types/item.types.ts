@@ -17,7 +17,7 @@ export interface CreateItemDto {
   title: string;
   description: string;
   status: ItemStatus;
-  userId?: string;
+  userId: string;
 }
 
 export interface UpdateItemStatusDto {

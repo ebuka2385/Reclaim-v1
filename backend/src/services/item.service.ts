@@ -1,12 +1,12 @@
-import { PrismaClient, Prisma, Item as DataItem } from '@prisma/client';
-// If you also need your DTOs/enums, import them separately:
-import type { CreateItemDto } from '../types/item.types';
+import { PrismaClient, Prisma, Item as DataItem, ItemStatus as PrismaItemStatus} from '@prisma/client';
+
+import type { CreateItemDto} from '../types/item.types';
 import { ItemStatus as DtoItemStatus } from '../types/item.types';
 
 const prisma = new PrismaClient();
 
 export class ItemService {
-  // Get all items (mock data for now)
+
   async getAllItems(): Promise<DataItem[]> {
     const sortDirection: Prisma.SortOrder = 'desc';
 
@@ -18,24 +18,19 @@ export class ItemService {
 
   }
 
-  // Get item by ID
+  // returns the item by the given itemId
   async getItemById(id: string): Promise<DataItem | null> {
     return prisma.item.findUnique({ where: { itemId: id } });
   }
 
   // Create new item
   async createItem(data: CreateItemDto): Promise<DataItem> {
-    // TODO: Replace with actual Prisma query
-    // const item = await prisma.item.create({ data: { ...data, userId } });
-    
-    return {
-      itemId: Math.random().toString(36).substring(7),
+    return prisma.item.create({ data: {
       title: data.title,
       description: data.description,
-      status: data.status,
-      createdAt: new Date(),
+      status: data.status as PrismaItemStatus,
       userId: data.userId,
-    };
+    } });
   }
 
   // Update item status

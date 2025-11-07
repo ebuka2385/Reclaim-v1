@@ -43,7 +43,7 @@ describe('ItemService', () => {
         title: 'Lost Phone',
         description: 'iPhone 14 Pro',
         status: ItemStatus.LOST,
-        userId: 'user123',
+        userId: 'temp-user-id',
       };
 
       const result = await itemService.createItem(createData);
@@ -63,7 +63,7 @@ describe('ItemService', () => {
         title: 'Found Keys',
         description: 'House keys with blue keychain',
         status: ItemStatus.FOUND,
-        userId: 'user456',
+        userId: 'temp-user-id',
       };
 
       const result = await itemService.createItem(createData);
@@ -81,7 +81,7 @@ describe('ItemService', () => {
           title: `Test Item ${status}`,
           description: 'Test description',
           status: status,
-          userId: 'user123',
+          userId: 'temp-user-id',
         };
 
         const result = await itemService.createItem(createData);

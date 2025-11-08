@@ -14,9 +14,21 @@ export class ItemService {
     return items;
   }
 
+  // gets all items that have been reported by a specific user based on the user's id
+  async getItemsByUser(userId: string): Promise<DataItem[]> {
+    const sortDirection: Prisma.SortOrder = 'desc';
+    const items = await prisma.item.findMany({
+      where: { userId },
+      orderBy: { createdAt: sortDirection },
+    });
+    return items;
+  }
+
   // returns the item by the given itemId
   async getItemById(id: string): Promise<DataItem | null> {
-    return prisma.item.findUnique({ where: { itemId: id } });
+    return prisma.item.findUnique({
+       where: { itemId: id } 
+    });
   }
 
   // creates a new item using the CreateItemDto
@@ -38,7 +50,7 @@ export class ItemService {
       });
       return item;
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
         return null;
       }
       throw error;
@@ -51,14 +63,14 @@ export class ItemService {
       await prisma.item.delete({ where: { itemId: id } });
       return true;
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
         return false;
       }
       throw error;
     }
   }
 
-  // List items with filter: either status or userId or both
+  // lists all items based on the provided filter
   async listItems(filter: ListItemFilter): Promise<DataItem[]> {
     const where: Prisma.ItemWhereInput = {};
     if (filter.status) {
@@ -67,60 +79,45 @@ export class ItemService {
     if (filter.userId) {
       where.userId = filter.userId;
     }
-    const sortBy = filter.sortBy || 'createdAt';
-    const sortOrder: Prisma.SortOrder = filter.sortOrder || 'desc';
-    const orderBy: Prisma.ItemOrderByWithRelationInput = {
-      [sortBy]: sortOrder,
-    };
-    const items = await prisma.item.findMany({
-      where,
-      orderBy,
-    });
+    let sortBy = 'createdAt';
+    if (filter.sortBy) {
+      sortBy = filter.sortBy;
+    } else {
+      sortBy = 'createdAt';
+    }
+    let sortOrder: Prisma.SortOrder = 'desc';
+    if (filter.sortOrder == 'asc' || filter.sortOrder == 'desc') {
+      sortOrder = filter.sortOrder;
+    }
+    const orderBy: Prisma.ItemOrderByWithRelationInput = { [sortBy]: sortOrder };
+    const items = await prisma.item.findMany({ where, orderBy });
     return items;
   }
 
-  // archives an item based on the item id 
+  // archives an item based on the item id
   async archiveItem(itemId: string): Promise<DataArchive | null> {
-    try {
-      const item = await prisma.item.findUnique({ where: { itemId } });
-      if (!item) {
-        return null;
-      }
-      const archive = await prisma.archive.create({
-        data: {
-          itemId: itemId,
-        },
-      });
-      return archive;
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
-        return null;
-      }
-      throw error;
-    }
+    const item = await prisma.item.findUnique({ where: { itemId: itemId } });
+    if (item == null) {
+      return null;}
+    const archiveData: { itemId: string } = { itemId: itemId };
+    const archive = await prisma.archive.create({ data: archiveData });
+    return archive;
   }
 
-  // gets map pins for all items with coordinates
+  // retrieves the map pins for all items
   async getMapPins(): Promise<MapPin[]> {
     const items = await prisma.item.findMany();
-    
-    const pins: MapPin[] = items
-      .filter((item) => {
-        const itemWithCoords = item as DataItem & { latitude?: number | null; longitude?: number | null };
-        return itemWithCoords.latitude !== null && itemWithCoords.latitude !== undefined &&
-               itemWithCoords.longitude !== null && itemWithCoords.longitude !== undefined;
-      })
-      .map((item) => {
-        const itemWithCoords = item as DataItem & { latitude: number; longitude: number };
-        return {
-          itemId: item.itemId,
-          latitude: itemWithCoords.latitude,
-          longitude: itemWithCoords.longitude,
-          title: item.title,
-          status: item.status as DtoItemStatus,
-        };
-      });
-    
+    const pins: MapPin[] = [];
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      const itemWithCoords = item as DataItem & { latitude: number; longitude: number };
+      const aPin: MapPin = {
+        itemId: item.itemId, 
+        title: item.title,
+        status: item.status as DtoItemStatus,
+        latitude: itemWithCoords.latitude,
+        longitude: itemWithCoords.longitude};
+      pins.push(aPin);}
     return pins;
   }
 }

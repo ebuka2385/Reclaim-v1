@@ -1,4 +1,4 @@
-import { PrismaClient, Prisma, Item as DataItem, ItemStatus as PrismaItemStatus} from '@prisma/client';
+import { PrismaClient, Prisma, Item as DataItem, ItemStatus as PrismaItemStatus, Archive as DataArchive} from '@prisma/client';
 
 import type { CreateItemDto, ListItemFilter} from '../types/item.types';
 import { ItemStatus as DtoItemStatus } from '../types/item.types';
@@ -19,7 +19,7 @@ export class ItemService {
     return prisma.item.findUnique({ where: { itemId: id } });
   }
 
-  // Create new item
+  // creates a new item using the CreateItemDto
   async createItem(data: CreateItemDto): Promise<DataItem> {
     return prisma.item.create({ data: {
       title: data.title,
@@ -29,7 +29,7 @@ export class ItemService {
     } });
   }
 
-  // Update item status
+  // updates the item status from the item's id and based on the new status
   async updateItemStatus(id: string, status: DtoItemStatus): Promise<DataItem | null> {
     try {
       const item = await prisma.item.update({ 
@@ -39,28 +39,26 @@ export class ItemService {
       return item;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-        // Record not found
         return null;
       }
       throw error;
     }
   }
 
-  // Delete item
+  // deletes the item based on the itemId
   async deleteItem(id: string): Promise<boolean> {
     try {
       await prisma.item.delete({ where: { itemId: id } });
       return true;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-        // Record not found
         return false;
       }
       throw error;
     }
   }
 
-  // List items with filter
+  // List items with filter: either status or userId or both
   async listItems(filter: ListItemFilter): Promise<DataItem[]> {
     const where: Prisma.ItemWhereInput = {};
     if (filter.status) {
@@ -79,6 +77,27 @@ export class ItemService {
       orderBy,
     });
     return items;
+  }
+
+  // archives an item based on the item id 
+  async archiveItem(itemId: string): Promise<DataArchive | null> {
+    try {
+      const item = await prisma.item.findUnique({ where: { itemId } });
+      if (!item) {
+        return null;
+      }
+      const archive = await prisma.archive.create({
+        data: {
+          itemId: itemId,
+        },
+      });
+      return archive;
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
+        return null;
+      }
+      throw error;
+    }
   }
 }
 

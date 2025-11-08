@@ -31,3 +31,11 @@ export interface ListItemFilter {
   sortOrder?: 'asc' | 'desc';
 }
 
+export interface MapPin {
+  itemId: string;
+  title: string;
+  status: ItemStatus;
+  latitude: number;
+  longitude: number;
+}
+

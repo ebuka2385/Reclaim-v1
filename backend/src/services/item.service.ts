@@ -1,6 +1,6 @@
 import { PrismaClient, Prisma, Item as DataItem, ItemStatus as PrismaItemStatus, Archive as DataArchive} from '@prisma/client';
 
-import type { CreateItemDto, ListItemFilter} from '../types/item.types';
+import type { CreateItemDto, ListItemFilter, MapPin} from '../types/item.types';
 import { ItemStatus as DtoItemStatus } from '../types/item.types';
 
 const prisma = new PrismaClient();
@@ -98,6 +98,30 @@ export class ItemService {
       }
       throw error;
     }
+  }
+
+  // gets map pins for all items with coordinates
+  async getMapPins(): Promise<MapPin[]> {
+    const items = await prisma.item.findMany();
+    
+    const pins: MapPin[] = items
+      .filter((item) => {
+        const itemWithCoords = item as DataItem & { latitude?: number | null; longitude?: number | null };
+        return itemWithCoords.latitude !== null && itemWithCoords.latitude !== undefined &&
+               itemWithCoords.longitude !== null && itemWithCoords.longitude !== undefined;
+      })
+      .map((item) => {
+        const itemWithCoords = item as DataItem & { latitude: number; longitude: number };
+        return {
+          itemId: item.itemId,
+          latitude: itemWithCoords.latitude,
+          longitude: itemWithCoords.longitude,
+          title: item.title,
+          status: item.status as DtoItemStatus,
+        };
+      });
+    
+    return pins;
   }
 }
 

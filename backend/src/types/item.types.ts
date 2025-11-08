@@ -24,3 +24,10 @@ export interface UpdateItemStatusDto {
   status: ItemStatus;
 }
 
+export interface ListItemFilter {
+  status?: ItemStatus;
+  userId?: string;
+  sortBy?: 'createdAt' | 'title' | 'status';
+  sortOrder?: 'asc' | 'desc';
+}
+

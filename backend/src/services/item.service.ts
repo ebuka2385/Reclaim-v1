@@ -1,21 +1,17 @@
 import { PrismaClient, Prisma, Item as DataItem, ItemStatus as PrismaItemStatus} from '@prisma/client';
 
-import type { CreateItemDto} from '../types/item.types';
+import type { CreateItemDto, ListItemFilter} from '../types/item.types';
 import { ItemStatus as DtoItemStatus } from '../types/item.types';
 
 const prisma = new PrismaClient();
 
 export class ItemService {
-
   async getAllItems(): Promise<DataItem[]> {
     const sortDirection: Prisma.SortOrder = 'desc';
-
     const items = await prisma.item.findMany({
       orderBy: { createdAt: sortDirection },
     });
-    
     return items;
-
   }
 
   // returns the item by the given itemId
@@ -62,6 +58,27 @@ export class ItemService {
       }
       throw error;
     }
+  }
+
+  // List items with filter
+  async listItems(filter: ListItemFilter): Promise<DataItem[]> {
+    const where: Prisma.ItemWhereInput = {};
+    if (filter.status) {
+      where.status = filter.status as PrismaItemStatus;
+    }
+    if (filter.userId) {
+      where.userId = filter.userId;
+    }
+    const sortBy = filter.sortBy || 'createdAt';
+    const sortOrder: Prisma.SortOrder = filter.sortOrder || 'desc';
+    const orderBy: Prisma.ItemOrderByWithRelationInput = {
+      [sortBy]: sortOrder,
+    };
+    const items = await prisma.item.findMany({
+      where,
+      orderBy,
+    });
+    return items;
   }
 }
 

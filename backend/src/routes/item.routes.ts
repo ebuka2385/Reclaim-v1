@@ -15,6 +15,9 @@ router.post('/', (req, res) => itemController.createItem(req, res));
 // PATCH /items/:id/status - Update item status
 router.patch('/:id/status', (req, res) => itemController.updateItemStatus(req, res));
 
+// PATCH /items/:id - Update item (title, description, status)
+router.patch('/:id', (req, res) => itemController.updateItem(req, res));
+
 // DELETE /items/:id - Delete item
 router.delete('/:id', (req, res) => itemController.deleteItem(req, res));
 

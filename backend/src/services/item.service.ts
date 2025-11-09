@@ -1,6 +1,6 @@
 import { PrismaClient, Prisma, Item as DataItem, ItemStatus as PrismaItemStatus, Archive as DataArchive} from '@prisma/client';
 
-import type { CreateItemDto, ListItemFilter, MapPin} from '../types/item.types';
+import type { CreateItemDto, UpdateItemDto, ListItemFilter, MapPin} from '../types/item.types';
 import { ItemStatus as DtoItemStatus } from '../types/item.types';
 
 const prisma = new PrismaClient();
@@ -47,6 +47,33 @@ export class ItemService {
       const item = await prisma.item.update({ 
         where: { itemId: id }, 
         data: { status: status as PrismaItemStatus } 
+      });
+      return item;
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  // updates an item's title, description, and/or status
+  async updateItem(id: string, data: UpdateItemDto): Promise<DataItem | null> {
+    try {
+      const updateData: Prisma.ItemUpdateInput = {};
+      if (data.title !== undefined) {
+        updateData.title = data.title;
+      }
+      if (data.description !== undefined) {
+        updateData.description = data.description;
+      }
+      if (data.status !== undefined) {
+        updateData.status = data.status as PrismaItemStatus;
+      }
+      
+      const item = await prisma.item.update({
+        where: { itemId: id },
+        data: updateData,
       });
       return item;
     } catch (error) {

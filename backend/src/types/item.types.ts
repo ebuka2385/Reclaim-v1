@@ -24,6 +24,12 @@ export interface UpdateItemStatusDto {
   status: ItemStatus;
 }
 
+export interface UpdateItemDto {
+  title?: string;
+  description?: string;
+  status?: ItemStatus;
+}
+
 export interface ListItemFilter {
   status?: ItemStatus;
   userId?: string;

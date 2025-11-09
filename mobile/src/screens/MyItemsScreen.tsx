@@ -1,12 +1,19 @@
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useState, useEffect } from 'react';
-import { Item } from '../types';
+import { Ionicons } from '@expo/vector-icons';
+import { Item, Screen } from '../types';
 import { apiService } from '../services/api';
+import EditItemScreen from './EditItemScreen';
 
 const DEFAULT_USER_ID = 'temp-user-id'; // Default user for demo
 
-export default function MyItemsScreen() {
+interface MyItemsScreenProps {
+  onNavigate?: (screen: Screen) => void;
+}
+
+export default function MyItemsScreen({ onNavigate }: MyItemsScreenProps = {} as MyItemsScreenProps) {
   const [myItems, setMyItems] = useState<Item[]>([]);
+  const [editingItem, setEditingItem] = useState<Item | null>(null);
 
   const loadMyItems = async () => {
     try {
@@ -18,6 +25,7 @@ export default function MyItemsScreen() {
       setMyItems(userItems);
     } catch (error) {
       console.error('Failed to load items:', error);
+      Alert.alert('Error', 'Failed to load items');
     }
   };
 
@@ -26,22 +34,56 @@ export default function MyItemsScreen() {
   }, []);
 
   const handleDeleteItem = async (itemId: string) => {
-    Alert.alert('Delete Item', 'Are you sure?', [
+    Alert.alert('Delete Item', 'Are you sure you want to delete this item?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',
         style: 'destructive',
         onPress: async () => {
           try {
-            await apiService.deleteItem(itemId);
-            setMyItems(prevItems => prevItems.filter(item => item.id !== itemId));
-          } catch (error) {
-            Alert.alert('Error', 'Failed to delete');
+            const success = await apiService.deleteItem(itemId);
+            if (success) {
+              // Remove from local state immediately
+              setMyItems(prevItems => prevItems.filter(item => item.id !== itemId));
+              // Also refresh from server to ensure consistency
+              loadMyItems();
+            }
+          } catch (error: any) {
+            Alert.alert('Error', error.message || 'Failed to delete item');
           }
         }
       }
     ]);
   };
+
+  const handleEditItem = (item: Item) => {
+    setEditingItem(item);
+  };
+
+  const handleItemUpdated = () => {
+    loadMyItems();
+    setEditingItem(null);
+  };
+
+  const handleNavigate = (screen: Screen) => {
+    if (onNavigate) {
+      onNavigate(screen);
+    } else {
+      // Fallback if no navigation prop provided
+      setEditingItem(null);
+    }
+  };
+
+  // Show edit screen if editing
+  if (editingItem) {
+    return (
+      <EditItemScreen
+        item={editingItem}
+        onNavigate={handleNavigate}
+        onItemUpdated={handleItemUpdated}
+      />
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -65,12 +107,22 @@ export default function MyItemsScreen() {
                   </View>
                 </View>
                 <Text style={styles.description}>{item.description}</Text>
-                <TouchableOpacity 
-                  style={styles.deleteButton}
-                  onPress={() => handleDeleteItem(item.id)}
-                >
-                  <Text style={styles.deleteButtonText}>Delete</Text>
-                </TouchableOpacity>
+                <View style={styles.actionButtons}>
+                  <TouchableOpacity 
+                    style={styles.editButton}
+                    onPress={() => handleEditItem(item)}
+                  >
+                    <Ionicons name="pencil" size={10} color="#003071" />
+                    <Text style={styles.editButtonText}>Edit</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.deleteButton}
+                    onPress={() => handleDeleteItem(item.id)}
+                  >
+                    <Ionicons name="trash" size={10} color="#dc2626" />
+                    <Text style={styles.deleteButtonText}>Delete</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             ))
           )}
@@ -152,14 +204,38 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 12,
   },
-  deleteButton: {
-    backgroundColor: '#fee2e2',
-    padding: 8,
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+  },
+  editButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#e0e7ff',
+    padding:10,
     borderRadius: 6,
-    alignSelf: 'flex-start',
+    gap: 6,
+  },
+  editButtonText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#003071',
+  },
+  deleteButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fee2e2',
+    padding: 10,
+    borderRadius: 6,
+    gap: 6,
   },
   deleteButtonText: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '600',
     color: '#dc2626',
   },

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { itemService } from '../services/item.service';
-import { CreateItemDto, ItemStatus } from '../types/item.types';
+import { CreateItemDto, UpdateItemDto, ItemStatus } from '../types/item.types';
 
 export class ItemController {
   // GET /items - Get all items
@@ -73,6 +73,35 @@ export class ItemController {
       res.json(item);
     } catch (error) {
       res.status(500).json({ error: 'Failed to update item status' });
+    }
+  }
+
+  // PATCH /items/:id - Update item (title, description, status)
+  async updateItem(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const { title, description, status } = req.body as UpdateItemDto;
+
+      if (!title && !description && !status) {
+        res.status(400).json({ error: 'At least one field (title, description, status) must be provided' });
+        return;
+      }
+
+      if (status && !Object.values(ItemStatus).includes(status)) {
+        res.status(400).json({ error: 'Invalid status. Must be LOST, FOUND, or CLAIMED' });
+        return;
+      }
+
+      const item = await itemService.updateItem(id, { title, description, status });
+      
+      if (!item) {
+        res.status(404).json({ error: 'Item not found' });
+        return;
+      }
+      
+      res.json(item);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to update item' });
     }
   }
 

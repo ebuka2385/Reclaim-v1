@@ -33,7 +33,7 @@ export default function App() {
       case 'notifications':
         return <NotificationsScreen />;
       case 'myitems':
-        return <MyItemsScreen />;
+        return <MyItemsScreen onNavigate={setScreen} />;
       default:
         return <HomeScreen onNavigate={setScreen} />;
     }

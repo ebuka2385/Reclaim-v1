@@ -27,6 +27,8 @@ model Item {
   userId      String
   user        User       @relation(fields: [userId], references: [userId], onDelete: Cascade)
   archives    Archive[]
+  latitude    Float?
+  longitude   Float?
 
   @@index([userId])
   @@index([status])

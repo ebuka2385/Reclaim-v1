@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { itemService } from '../services/item.service';
-import { CreateItemDto, UpdateItemDto, ItemStatus } from '../types/item.types';
+import { CreateItemDto, UpdateItemDto, ItemStatus, ListItemFilter } from '../types/item.types';
 
 export class ItemController {
   // GET /items - Get all items
@@ -10,6 +10,60 @@ export class ItemController {
       res.json({ items });
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch items' });
+    }
+  }
+
+  // GET /items/filter - Get items with filter
+  async listItems(req: Request, res: Response): Promise<void> {
+    try {
+      const validFilterKeys = ['status', 'userId', 'sortBy', 'sortOrder'];
+      const queryKeys = Object.keys(req.query);
+      
+      for (const key of queryKeys) {
+        if (!validFilterKeys.includes(key)) {
+          res.status(400).json({ error: "Can't retrieve and filter items" });
+          return;
+        }
+      }
+      
+      const filter: ListItemFilter = {};
+      
+      if (req.query.status) {
+        const status = req.query.status as string;
+        if (!Object.values(ItemStatus).includes(status as ItemStatus)) {
+          res.status(400).json({ error: "Can't retrieve and filter items" });
+          return;
+        }
+        filter.status = status as ItemStatus;
+      }
+      
+      if (req.query.userId) {
+        filter.userId = req.query.userId as string;
+      }
+      
+      if (req.query.sortBy) {
+        const sortBy = req.query.sortBy as string;
+        const validSortBy = ['createdAt', 'title', 'status'];
+        if (!validSortBy.includes(sortBy)) {
+          res.status(400).json({ error: "Can't retrieve and filter items" });
+          return;
+        }
+        filter.sortBy = sortBy as 'createdAt' | 'title' | 'status';
+      }
+      
+      if (req.query.sortOrder) {
+        const sortOrder = req.query.sortOrder as string;
+        if (sortOrder !== 'asc' && sortOrder !== 'desc') {
+          res.status(400).json({ error: "Can't retrieve and filter items" });
+          return;
+        }
+        filter.sortOrder = sortOrder as 'asc' | 'desc';
+      }
+      
+      const items = await itemService.listItems(filter);
+      res.json({ items });
+    } catch (error) {
+      res.status(500).json({ error: "Can't retrieve and filter items" });
     }
   }
 
@@ -109,7 +163,11 @@ export class ItemController {
   async deleteItem(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      await itemService.deleteItem(id);
+      const deleted = await itemService.deleteItem(id);
+      if (!deleted) {
+        res.status(404).json({ error: 'Item not found' });
+        return;
+      }
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ error: 'Failed to delete item' });

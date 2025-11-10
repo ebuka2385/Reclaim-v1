@@ -6,6 +6,9 @@ const router: Router = Router();
 // GET /items - Get all items
 router.get('/', (req, res) => itemController.getAllItems(req, res));
 
+// GET /items/filter - Get items with filter
+router.get('/filter', (req, res) => itemController.listItems(req, res));
+
 // POST /items - Create new item
 router.post('/', (req, res) => itemController.createItem(req, res));
 

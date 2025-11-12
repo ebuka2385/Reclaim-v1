@@ -18,6 +18,8 @@ export interface CreateItemDto {
   description: string;
   status: ItemStatus;
   userId: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface UpdateItemStatusDto {
@@ -40,6 +42,7 @@ export interface ItemFilter {
 export interface MapPin {
   itemId: string;
   title: string;
+  description: string;
   status: ItemStatus;
   latitude: number;
   longitude: number;

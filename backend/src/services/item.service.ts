@@ -1,22 +1,24 @@
-import { PrismaClient, Prisma, Item as DataItem, ItemStatus as PrismaItemStatus, Archive as DataArchive} from '@prisma/client';
+/// All code written in this file was created by Ethan Hunt and is completely original in terms of its use. I used several resources to help aid my coding process as I have never used Prisma or TypeScript before.
 
-import type { CreateItemDto, UpdateItemDto, ListItemFilter, MapPin} from '../types/item.types';
-import { ItemStatus as DtoItemStatus } from '../types/item.types';
+import { PrismaClient, Prisma, Item as DataItem, ItemStatus as PrismaItemStatus, Archive as DataArchive} from "@prisma/client";
+
+import type { CreateItemDto, UpdateItemDto, ItemFilter, MapPin} from "../types/item.types";
+import { ItemStatus as DtoItemStatus } from "../types/item.types";
 
 const prisma = new PrismaClient();
 
 export class ItemService {
   async getAllItems(): Promise<DataItem[]> {
-    const sortDirection: Prisma.SortOrder = 'desc';
+    const sortDirection: Prisma.SortOrder = "desc";
     const items = await prisma.item.findMany({
       orderBy: { createdAt: sortDirection },
     });
     return items;
   }
 
-  // gets all items that have been reported by a specific user based on the user's id
+  // gets all items that have been reported by a specific user based on the user"s id
   async getItemsByUser(userId: string): Promise<DataItem[]> {
-    const sortDirection: Prisma.SortOrder = 'desc';
+    const sortDirection: Prisma.SortOrder = "desc";
     const items = await prisma.item.findMany({
       where: { userId },
       orderBy: { createdAt: sortDirection },
@@ -41,7 +43,7 @@ export class ItemService {
     } });
   }
 
-  // updates the item status from the item's id and based on the new status
+  // updates the item status from the item"s id and based on the new status
   async updateItemStatus(id: string, status: DtoItemStatus): Promise<DataItem | null> {
     try {
       const item = await prisma.item.update({ 
@@ -57,17 +59,17 @@ export class ItemService {
     }
   }
 
-  // updates an item's title, description, and/or status
+  // updates an item"s title, description, and/or status
   async updateItem(id: string, data: UpdateItemDto): Promise<DataItem | null> {
     try {
       const updateData: Prisma.ItemUpdateInput = {};
-      if (data.title !== undefined) {
+      if (data.title != undefined) {
         updateData.title = data.title;
       }
-      if (data.description !== undefined) {
+      if (data.description != undefined) {
         updateData.description = data.description;
       }
-      if (data.status !== undefined) {
+      if (data.status != undefined) {
         updateData.status = data.status as PrismaItemStatus;
       }
       
@@ -97,8 +99,8 @@ export class ItemService {
     }
   }
 
-  // lists all items based on the provided filter
-  async listItems(filter: ListItemFilter): Promise<DataItem[]> {
+  // lists all items based on the filter input's type
+  async listItems(filter: ItemFilter): Promise<DataItem[]> {
     const where: Prisma.ItemWhereInput = {};
     if (filter.status) {
       where.status = filter.status as PrismaItemStatus;
@@ -106,14 +108,14 @@ export class ItemService {
     if (filter.userId) {
       where.userId = filter.userId;
     }
-    let sortBy = 'createdAt';
+    let sortBy = "createdAt";
     if (filter.sortBy) {
       sortBy = filter.sortBy;
     } else {
-      sortBy = 'createdAt';
+      sortBy = "createdAt";
     }
-    let sortOrder: Prisma.SortOrder = 'desc';
-    if (filter.sortOrder == 'asc' || filter.sortOrder == 'desc') {
+    let sortOrder: Prisma.SortOrder = "desc";
+    if (filter.sortOrder == "asc" || filter.sortOrder == "desc") {
       sortOrder = filter.sortOrder;
     }
     const orderBy: Prisma.ItemOrderByWithRelationInput = { [sortBy]: sortOrder };

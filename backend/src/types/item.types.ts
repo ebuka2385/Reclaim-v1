@@ -30,7 +30,7 @@ export interface UpdateItemDto {
   status?: ItemStatus;
 }
 
-export interface ListItemFilter {
+export interface ItemFilter {
   status?: ItemStatus;
   userId?: string;
   sortBy?: 'createdAt' | 'title' | 'status';

@@ -1,8 +1,8 @@
-import { PrismaClient } from '@prisma/client';
-import { itemService } from './item.service';
-import { ItemStatus } from '../types/item.types';
-import type { CreateClaimDto } from '../types/claim.types';
-import { ClaimStatus as DtoClaimStatus } from '../types/claim.types';
+import { PrismaClient } from "@prisma/client";
+import { itemService } from "./item.service";
+import { ItemStatus } from "../types/item.types";
+import type { CreateClaimDto } from "../types/claim.types";
+import { ClaimStatus as DtoClaimStatus } from "../types/claim.types";
 
 
 const prisma = new PrismaClient();
@@ -14,11 +14,11 @@ export class ClaimService {
   async createClaim(itemId: string, ownerId: string): Promise<any> {
     const item = await prisma.item.findUnique({ where: { itemId } });
     if (!item) {
-      throw new Error('Item not found');
+      throw new Error("Item not found");
     }
     const finderId = item.userId;
     if (finderId === ownerId) {
-      throw new Error('Cannot claim your own item');
+      throw new Error("Cannot claim your own item");
     }
     // NOTE: Requires Claim model in Prisma schema with fields:
     // claimId (String @id @default(cuid()))
@@ -33,7 +33,7 @@ export class ClaimService {
         itemId: itemId,
         claimerId: ownerId,
         finderId: finderId,
-        status: 'OPEN',
+        status: "OPEN",
         handedOff: false,
       },
     });
@@ -51,24 +51,24 @@ export class ClaimService {
     });
 
     if (!claim) {
-      throw new Error('Claim not found');
+      throw new Error("Claim not found");
     }
 
     if (claim.finderId !== finderId) {
-      throw new Error('Only the finder can approve this claim');
+      throw new Error("Only the finder can approve this claim");
     }
 
-    if (claim.status !== 'OPEN') {
-      throw new Error('Claim is not open');
+    if (claim.status !== "OPEN") {
+      throw new Error("Claim is not open");
     }
 
     const updatedClaim = await (prisma as any).claim.update({
       where: { claimId },
-      data: { status: 'ACCEPTED' },
+      data: { status: "ACCEPTED" },
     });
 
     // TODO: When messaging service is ready, uncomment and implement:
-    // import { messagingService } from './messaging.service';
+    // import { messagingService } from "./messaging.service";
     // await messagingService.createConversation(claimId, claim.claimerId, claim.finderId);
 
     return updatedClaim;
@@ -81,22 +81,22 @@ export class ClaimService {
     });
 
     if (!claim) {
-      throw new Error('Claim not found');
+      throw new Error("Claim not found");
     }
     if (claim.finderId !== finderId) {
-      throw new Error('Only the finder can deny this claim');
+      throw new Error("Only the finder can deny this claim");
     }
-    if (claim.status !== 'OPEN') {
-      throw new Error('Claim is not open');
+    if (claim.status !== "OPEN") {
+      throw new Error("Claim is not open");
     }
 
     const updatedClaim = await (prisma as any).claim.update({
       where: { claimId },
-      data: { status: 'DECLINED' },
+      data: { status: "DECLINED" },
     });
 
     // started riding some of the code here that will be added later when messaging service is ready
-    // import { messagingService } from './messaging.service';
+    // import { messagingService } from "./messaging.service";
     // await messagingService.archiveConversation(claimId);
     // Messages will be archived and not visible to users
 
@@ -107,7 +107,7 @@ export class ClaimService {
   async getClaimsByUser(userId: string): Promise<any[]> {
     const claims = await (prisma as any).claim.findMany({
       where: { claimerId: userId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
     return claims;
   }
@@ -118,13 +118,13 @@ export class ClaimService {
       where: { claimId },
     });
     if (!claim) {
-      throw new Error('Claim not found');
+      throw new Error("Claim not found");
     }
     if (claim.finderId !== finderId) {
-      throw new Error('Only the finder can mark item as handed off');
+      throw new Error("Only the finder can mark item as handed off");
     }
-    if (claim.status !== 'ACCEPTED') {
-      throw new Error('Claim must be accepted before marking as handed off');
+    if (claim.status !== "ACCEPTED") {
+      throw new Error("Claim must be accepted before marking as handed off");
     }
     const updatedClaim = await (prisma as any).claim.update({
       where: { claimId },
@@ -139,21 +139,21 @@ export class ClaimService {
       where: { claimId },
     });
     if (!claim) {
-      throw new Error('Claim not found');
+      throw new Error("Claim not found");
     }
     if (claim.claimerId !== claimerId) {
-      throw new Error('Only the claimer can confirm receipt');
+      throw new Error("Only the claimer can confirm receipt");
     }
-    if (claim.status !== 'ACCEPTED') {
-      throw new Error('Claim must be accepted before confirming receipt');
+    if (claim.status !== "ACCEPTED") {
+      throw new Error("Claim must be accepted before confirming receipt");
     }
     if (!claim.handedOff) {
-      throw new Error('Item must be handed off before confirming receipt');
+      throw new Error("Item must be handed off before confirming receipt");
     }
     await itemService.updateItemStatus(claim.itemId, ItemStatus.CLAIMED);
 
     // TODO: When messaging service is ready, uncomment and implement:
-    // import { messagingService } from './messaging.service';
+    // import { messagingService } from "./messaging.service";
     // await messagingService.hideConversation(claimId);
     // Messages will be hidden from both users (but not archived)
 

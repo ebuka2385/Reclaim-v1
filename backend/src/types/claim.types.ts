@@ -1,7 +1,7 @@
 export enum ClaimStatus {
-  OPEN = 'OPEN',
-  ACCEPTED = 'ACCEPTED',
-  DECLINED = 'DECLINED',
+  OPEN = "OPEN",
+  ACCEPTED = "ACCEPTED",
+  DECLINED = "DECLINED",
 }
 
 export interface Claim {

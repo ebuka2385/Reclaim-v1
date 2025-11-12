@@ -10,6 +10,7 @@ export interface Claim {
   claimerId: string;
   finderId: string;
   status: ClaimStatus;
+  handedOff: boolean;
   createdAt: string;
 }
 

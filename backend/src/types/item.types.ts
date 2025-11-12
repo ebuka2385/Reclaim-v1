@@ -1,7 +1,7 @@
 export enum ItemStatus {
-  LOST = 'LOST',
-  FOUND = 'FOUND',
-  CLAIMED = 'CLAIMED',
+  LOST = "LOST",
+  FOUND = "FOUND",
+  CLAIMED = "CLAIMED",
 }
 
 export interface Item {
@@ -30,11 +30,11 @@ export interface UpdateItemDto {
   status?: ItemStatus;
 }
 
-export interface ListItemFilter {
+export interface ItemFilter {
   status?: ItemStatus;
   userId?: string;
-  sortBy?: 'createdAt' | 'title' | 'status';
-  sortOrder?: 'asc' | 'desc';
+  sortBy?: "createdAt" | "title" | "status";
+  sortOrder?: "asc" | "desc";
 }
 
 export interface MapPin {

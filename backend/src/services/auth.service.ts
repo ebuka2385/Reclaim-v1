@@ -1,5 +1,5 @@
-import { PrismaClient, User as DataUser } from '@prisma/client';
-import type { SSOUserInfo, LoginResult } from '../types/auth.types';
+import { PrismaClient, User as DataUser } from "@prisma/client";
+import type { SSOUserInfo, LoginResult } from "../types/auth.types";
 
 const prisma = new PrismaClient();
 
@@ -16,9 +16,9 @@ export class AuthService {
   }
   
   // WORK IN PROGRESS: Implement SSO API integration based on CWRU SSO documentation
-  // exchanges the code for the user's information
+  // exchanges the code for the user"s information
   private async exchangeCodeForUserInfo(authCode: string): Promise<SSOUserInfo> {
-    throw new Error('SSO integration isnt implemented atm.');
+    throw new Error("SSO integration isnt implemented atm.");
   }
 
   private async findOrCreateUser(userInfo: SSOUserInfo): Promise<DataUser> {

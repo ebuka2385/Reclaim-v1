@@ -1,6 +1,7 @@
 /// All code written in this file was created by Ethan Hunt and is completely original in terms of its use. I used several resources to help aid my coding process as I have never used Prisma or TypeScript before.
 
 import { PrismaClient } from "@prisma/client";
+import { ClaimStatus } from "../types/claim.types";
 
 const prisma = new PrismaClient();
 
@@ -18,7 +19,7 @@ export class MessagingService {
       throw new Error("Claim not found");
     }
 
-    if (claim.status != "ACCEPTED") {
+    if (claim.status != ClaimStatus.ACCEPTED) {
       throw new Error("Thread can only be created for accepted claims");
     }
 
@@ -113,7 +114,7 @@ export class MessagingService {
 
   // Verifies that a user has access to a thread
   // User must be either the claimer or finder
-  // Thread must not be archived
+  // Thread must not be archived or hidden (hidden/archived threads are only accessible by devs via archive)
   // Claim must be ACCEPTED (not DECLINED)
   async verifyParticipantAccess(threadId: string, userId: string): Promise<void> {
     const thread = await (prisma as any).thread.findUnique({
@@ -132,6 +133,11 @@ export class MessagingService {
       throw new Error("Thread is archived and cannot be accessed");
     }
 
+    // Check if thread is hidden (completed claims - only accessible by devs via archive)
+    if (thread.hidden) {
+      throw new Error("Thread is hidden and cannot be accessed");
+    }
+
     // Check if user is claimer or finder
     if (thread.claimerId != userId && thread.finderId !== userId) {
       throw new Error("User does not have access to this thread");
@@ -147,13 +153,94 @@ export class MessagingService {
     }
 
     // Check claim status - must be ACCEPTED (not DECLINED)
-    if (claim.status == "DECLINED") {
+    if (claim.status == ClaimStatus.DECLINED) {
       throw new Error("Thread is not accessible - claim was declined");
     }
 
-    if (claim.status != "ACCEPTED") {
+    if (claim.status != ClaimStatus.ACCEPTED) {
       throw new Error("Thread is not accessible - claim is not accepted");
     }
+  }
+
+  // Archives a conversation when a claim is denied
+  // Sets archived = true on the thread, preventing access
+  async archiveConversation(claimId: string): Promise<void> {
+    const thread = await (prisma as any).thread.findFirst({
+      where: { claimId },
+    });
+
+    if (!thread) {
+      // Thread might not exist if claim was denied before approval
+      // This is fine, just return
+      return;
+    }
+
+    await (prisma as any).thread.update({
+      where: { threadId: thread.threadId },
+      data: { archived: true },
+    });
+  }
+
+  // Hides a conversation when receipt is confirmed (item CLAIMED)
+  // Sets hidden = true on the thread
+  // Hidden is different from archived - archived = denied, hidden = completed
+  async hideConversation(claimId: string): Promise<void> {
+    const thread = await (prisma as any).thread.findFirst({
+      where: { claimId },
+    });
+
+    if (!thread) {
+      throw new Error("Thread not found for this claim");
+    }
+
+    await (prisma as any).thread.update({
+      where: { threadId: thread.threadId },
+      data: { hidden: true },
+    });
+  }
+
+  // Gets all conversations for a user
+  // Returns threads where user is either claimer or finder
+  // Filters out archived threads (denied claims) and hidden threads (completed claims)
+  // Hidden threads are archived and not accessible to users
+  async getConversationsByUser(userId: string): Promise<any[]> {
+    const where: any = {
+      OR: [
+        { claimerId: userId },
+        { finderId: userId },
+      ],
+      archived: false, // Don't include archived (denied) conversations
+      hidden: false, // Don't include hidden (completed) conversations - these are archived
+    };
+
+    const threads = await (prisma as any).thread.findMany({
+      where,
+      include: {
+        claim: {
+          include: {
+            item: true, // Include item info for display
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    // Get last message for each thread
+    const threadsWithLastMessage = await Promise.all(
+      threads.map(async (thread: any) => {
+        const lastMessage = await (prisma as any).message.findFirst({
+          where: { threadId: thread.threadId },
+          orderBy: { createdAt: "desc" },
+        });
+
+        return {
+          ...thread,
+          lastMessage: lastMessage || null,
+        };
+      })
+    );
+
+    return threadsWithLastMessage;
   }
 }
 

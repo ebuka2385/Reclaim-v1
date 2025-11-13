@@ -9,6 +9,9 @@ router.get('/', (req, res) => itemController.getAllItems(req, res));
 // GET /items/filter - Get items with filter
 router.get('/filter', (req, res) => itemController.listItems(req, res));
 
+// GET /items/map/pins - Get map pins
+router.get('/map/pins', (req, res) => itemController.getMapPins(req, res));
+
 // POST /items - Create new item
 router.post('/', (req, res) => itemController.createItem(req, res));
 

@@ -29,7 +29,7 @@ export default function App() {
       case 'search':
         return <SearchScreen />;
       case 'map':
-        return <MapScreen />;
+        return <SearchScreen />; // Map merged into search
       case 'notifications':
         return <NotificationsScreen />;
       case 'myitems':

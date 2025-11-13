@@ -42,15 +42,15 @@ export default function BottomNav({ currentScreen, onNavigate }: BottomNavProps)
 
       <TouchableOpacity 
         style={styles.tab}
-        onPress={() => onNavigate('map')}
+        onPress={() => onNavigate('search')}
       >
         <Ionicons 
-          name={currentScreen === 'map' ? 'map' : 'map-outline'} 
+          name={currentScreen === 'search' || currentScreen === 'map' ? 'map' : 'map-outline'} 
           size={24} 
-          color={currentScreen === 'map' ? '#fff' : '#b8c5d6'} 
+          color={currentScreen === 'search' || currentScreen === 'map' ? '#fff' : '#b8c5d6'} 
           style={styles.icon}
         />
-        <Text style={[styles.label, currentScreen === 'map' && styles.activeLabel]}>
+        <Text style={[styles.label, (currentScreen === 'search' || currentScreen === 'map') && styles.activeLabel]}>
           Map
         </Text>
       </TouchableOpacity>

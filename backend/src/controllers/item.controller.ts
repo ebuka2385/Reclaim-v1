@@ -87,7 +87,7 @@ export class ItemController {
   // POST /items - Create new item
   async createItem(req: Request, res: Response): Promise<void> {
     try {
-      const { title,description, status } = req.body as CreateItemDto;
+      const { title, description, status, latitude, longitude } = req.body as CreateItemDto;
 
       if (!title || !description|| !status) {
         res.status(400).json({ error: "Missing required fields: title, description, status" });
@@ -99,7 +99,14 @@ export class ItemController {
         return;
       }
 
-      const item =await itemService.createItem({ title, description, status, userId: req.body.userId});
+      const item = await itemService.createItem({ 
+        title, 
+        description, 
+        status, 
+        userId: req.body.userId,
+        latitude,
+        longitude
+      });
       res.status(201).json(item);
     } catch (error) {
       res.status(500).json({ error: "Failed to create item" });
@@ -156,6 +163,16 @@ export class ItemController {
       res.json(item);
     } catch (error) {
       res.status(500).json({ error: "Failed to update this item" });
+    }
+  }
+
+  // GET /items/map/pins - Get map pins for all items
+  async getMapPins(_req: Request, res: Response): Promise<void> {
+    try {
+      const pins = await itemService.getMapPins();
+      res.json({ pins });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch map pins' });
     }
   }
 

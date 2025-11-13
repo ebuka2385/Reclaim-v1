@@ -1,0 +1,161 @@
+/// All code written in this file was created by Ethan Hunt and is completely original in terms of its use. I used several resources to help aid my coding process as I have never used Prisma or TypeScript before.
+
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
+export class MessagingService {
+  // Creates or ensures a thread exists for a claim
+  // Called when claim is approved (status ACCEPTED)
+  // Returns threadId - creates thread if it doesn't exist, returns existing if it does
+  async ensureThread(claimId: string): Promise<string> {
+    // First verify the claim exists and is ACCEPTED
+    const claim = await (prisma as any).claim.findUnique({
+      where: { claimId },
+    });
+
+    if (!claim) {
+      throw new Error("Claim not found");
+    }
+
+    if (claim.status != "ACCEPTED") {
+      throw new Error("Thread can only be created for accepted claims");
+    }
+
+    // Check if thread already exists for this claim
+    const existingThread = await (prisma as any).thread.findFirst({
+      where: { claimId },
+    });
+
+    if (existingThread) {
+      return existingThread.threadId;
+    }
+
+    // Create new thread
+    // NOTE: Requires Thread model in Prisma schema with fields:
+    // threadId (String @id @default(cuid()))
+    // claimId (String, FK to Claim, unique)
+    // claimerId (String, FK to User)
+    // finderId (String, FK to User)
+    // createdAt (DateTime @default(now()))
+    // archived (Boolean @default(false))
+    // hidden (Boolean @default(false))
+    const thread = await (prisma as any).thread.create({
+      data: {
+        claimId: claimId,
+        claimerId: claim.claimerId,
+        finderId: claim.finderId,
+        archived: false,
+        hidden: false,
+      },
+    });
+
+    return thread.threadId;
+  }
+
+  // Posts a message to a thread
+  // Verifies user has access before posting
+  async postMessage(threadId: string, userId: string, text: string): Promise<any> {
+    // Verify user has access to this thread
+    await this.verifyParticipantAccess(threadId, userId);
+
+    // Create message
+    // NOTE: Requires Message model in Prisma schema with fields:
+    // messageId (String @id @default(cuid()))
+    // threadId (String, FK to Thread)
+    // userId (String, FK to User)
+    // text (String)
+    // createdAt (DateTime @default(now()))
+    const message = await (prisma as any).message.create({
+      data: {
+        threadId: threadId,
+        userId: userId,
+        text: text,
+      },
+    });
+
+    return message;
+  }
+
+  // Lists messages for a thread with pagination
+  // Verifies user has access before listing
+  async listMessages(threadId: string, userId: string, cursor: string | null, limit: number = 50): Promise<{ messages: any[]; nextCursor: string | null }> {
+    // Verify user has access to this thread
+    await this.verifyParticipantAccess(threadId, userId);
+
+    // Build query with cursor for pagination
+    const where: any = { threadId };
+    if (cursor) {
+      where.messageId = { lt: cursor };
+    }
+
+    const messages = await (prisma as any).message.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      take: limit + 1, // Take one extra to check if there are more
+    });
+
+    // Check if there are more messages
+    const hasMore = messages.length > limit;
+    const messagesToReturn = hasMore ? messages.slice(0, limit) : messages;
+
+    // Get cursor for next page (last message's ID)
+    const nextCursor = hasMore && messagesToReturn.length > 0
+      ? messagesToReturn[messagesToReturn.length - 1].messageId
+      : null;
+
+    // Reverse to return oldest first (most recent at end)
+    return {
+      messages: messagesToReturn.reverse(),
+      nextCursor,
+    };
+  }
+
+  // Verifies that a user has access to a thread
+  // User must be either the claimer or finder
+  // Thread must not be archived
+  // Claim must be ACCEPTED (not DECLINED)
+  async verifyParticipantAccess(threadId: string, userId: string): Promise<void> {
+    const thread = await (prisma as any).thread.findUnique({
+      where: { threadId },
+      include: {
+        claim: true, // Need to check claim status
+      },
+    });
+
+    if (!thread) {
+      throw new Error("Thread not found");
+    }
+
+    // Check if thread is archived
+    if (thread.archived) {
+      throw new Error("Thread is archived and cannot be accessed");
+    }
+
+    // Check if user is claimer or finder
+    if (thread.claimerId != userId && thread.finderId !== userId) {
+      throw new Error("User does not have access to this thread");
+    }
+
+    // Get claim to check status
+    const claim = await (prisma as any).claim.findUnique({
+      where: { claimId: thread.claimId },
+    });
+
+    if (!claim) {
+      throw new Error("Claim not found");
+    }
+
+    // Check claim status - must be ACCEPTED (not DECLINED)
+    if (claim.status == "DECLINED") {
+      throw new Error("Thread is not accessible - claim was declined");
+    }
+
+    if (claim.status != "ACCEPTED") {
+      throw new Error("Thread is not accessible - claim is not accepted");
+    }
+  }
+}
+
+export const messagingService = new MessagingService();
+

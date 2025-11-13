@@ -11,6 +11,14 @@
     },
     "android": {
       "package": "com.reclaim.app"
-    }
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Reclaim to use your location to show items on the map."
+        }
+      ]
+    ]
   }
 }

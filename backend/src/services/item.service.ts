@@ -40,6 +40,8 @@ export class ItemService {
       description: data.description,
       status: data.status as PrismaItemStatus,
       userId: data.userId,
+      latitude: data.latitude,
+      longitude: data.longitude,
     } });
   }
 
@@ -133,20 +135,28 @@ export class ItemService {
     return archive;
   }
 
-  // retrieves the map pins for all items
+  // retrieves the map pins for all items (only items with coordinates)
   async getMapPins(): Promise<MapPin[]> {
     const items = await prisma.item.findMany();
     const pins: MapPin[] = [];
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
-      const itemWithCoords = item as DataItem & { latitude: number; longitude: number };
-      const aPin: MapPin = {
-        itemId: item.itemId, 
-        title: item.title,
-        status: item.status as DtoItemStatus,
-        latitude: itemWithCoords.latitude,
-        longitude: itemWithCoords.longitude};
-      pins.push(aPin);}
+      // Check if item has latitude and longitude (optional fields)
+      const itemWithCoords = item as DataItem & { latitude?: number; longitude?: number };
+      
+      // Only include items that have coordinates
+      if (itemWithCoords.latitude != null && itemWithCoords.longitude != null) {
+        const aPin: MapPin = {
+          itemId: item.itemId, 
+          title: item.title,
+          description: item.description,
+          status: item.status as DtoItemStatus,
+          latitude: itemWithCoords.latitude,
+          longitude: itemWithCoords.longitude
+        };
+        pins.push(aPin);
+      }
+    }
     return pins;
   }
 }

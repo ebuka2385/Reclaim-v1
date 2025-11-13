@@ -1,21 +1,15 @@
-import { Router } from "express";
-import itemRoutes from "./item.routes";
-import claimRoutes from "./claim.routes";
-
-// Will import all other routes here when created
+import { Router } from 'express';
+import itemRoutes from './item.routes';
 
 const router: Router = Router();
 
 // Health check
-router.get("/health", (_req, res) => {
+router.get('/health', (_req, res) => {
   res.json({ ok: true });
 });
 
 // Item routes
-router.use("/items", itemRoutes);
-
-// Claim routes
-router.use("/claims", claimRoutes);
+router.use('/items', itemRoutes);
 
 export default router;
 

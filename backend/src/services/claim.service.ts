@@ -39,7 +39,7 @@ export class ClaimService {
     });
 
     // TODO: When notification service is ready, send notification to finder
-    // TODO: Notification should appear in notifications tab and messaging tab
+    // TODO: Notification should appear via Apple Push Notifications (on iPhone screen) AND in app's notifications tab
 
     return claim;
   }

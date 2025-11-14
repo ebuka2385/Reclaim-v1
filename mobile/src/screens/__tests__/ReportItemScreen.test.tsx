@@ -43,7 +43,7 @@ describe('ReportItemScreen', () => {
     const title = '';
     const description = '';
     
-    const isValid = !!(title.trim() && description.trim());
+    const isValid = title.trim() && description.trim();
     expect(isValid).toBe(false);
   });
 

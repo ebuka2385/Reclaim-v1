@@ -35,9 +35,9 @@ export default function App() {
       case 'report':
         return <ReportItemScreen onNavigate={navigate} />;
       case 'search':
-        return <SearchScreen />;
+        return <SearchScreen onNavigate={navigate} />;
       case 'map':
-        return <SearchScreen />; // Map merged into search
+        return <SearchScreen onNavigate={navigate} />; // Map merged into search
       case 'notifications':
         return <NotificationsScreen />;
       case 'myitems':

@@ -201,11 +201,12 @@ class ApiService {
     if (!response.ok) {
       return [];
     }
-    return response.json();
+    const data = await response.json();
+    return data.conversations || [];
   }
 
   async getMessages(threadId: string) {
-    const response = await fetch(`${API_BASE_URL}/messages/threads/${threadId}`);
+    const response = await fetch(`${API_BASE_URL}/messages/threads/${threadId}?userId=${DEFAULT_USER_ID}`);
     if (!response.ok) {
       throw new Error('Failed to fetch messages');
     }

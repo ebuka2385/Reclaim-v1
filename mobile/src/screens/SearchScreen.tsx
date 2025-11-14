@@ -1,8 +1,10 @@
-import { View, Text, TextInput, StyleSheet, SafeAreaView, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { useState, useEffect, useMemo } from 'react';
 import { WebView } from 'react-native-webview';
 import * as Location from 'expo-location';
+import { Ionicons } from '@expo/vector-icons';
 import { apiService } from '../services/api';
+import { Screen } from '../types';
 
 interface MapPin {
   itemId: string;
@@ -13,7 +15,11 @@ interface MapPin {
   description?: string;
 }
 
-export default function SearchScreen() {
+interface SearchScreenProps {
+  onNavigate?: (screen: Screen, params?: any) => void;
+}
+
+export default function SearchScreen({ onNavigate }: SearchScreenProps = {}) {
   const [allPins, setAllPins] = useState<MapPin[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
@@ -238,12 +244,35 @@ export default function SearchScreen() {
                     setSearchQuery(item.title);
                   }}
                 >
-                  <Text style={styles.dropdownItemTitle}>{item.title}</Text>
-                  {item.description && (
-                    <Text style={styles.dropdownItemDesc} numberOfLines={1}>
-                      {item.description}
-                    </Text>
-                  )}
+                  <View style={styles.dropdownItemContent}>
+                    <View style={styles.dropdownItemText}>
+                      <Text style={styles.dropdownItemTitle}>{item.title}</Text>
+                      {item.description && (
+                        <Text style={styles.dropdownItemDesc} numberOfLines={1}>
+                          {item.description}
+                        </Text>
+                      )}
+                    </View>
+                    {onNavigate && (
+                      <TouchableOpacity
+                        style={styles.messageButton}
+                        onPress={async (e) => {
+                          e.stopPropagation();
+                          try {
+                            const claim = await apiService.createClaim(item.itemId);
+                            Alert.alert('Claim Created', 'Your message request has been sent!', [
+                              { text: 'OK', onPress: () => onNavigate('messages') },
+                            ]);
+                          } catch (error: any) {
+                            Alert.alert('Error', error.message || 'Failed to create claim');
+                          }
+                        }}
+                      >
+                        <Ionicons name="chatbubble" size={16} color="#003071" />
+                        <Text style={styles.messageButtonText}>Message</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
                 </TouchableOpacity>
               )}
               style={styles.dropdownList}
@@ -349,6 +378,14 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#f3f4f6',
   },
+  dropdownItemContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dropdownItemText: {
+    flex: 1,
+  },
   dropdownItemTitle: {
     fontSize: 16,
     fontWeight: '600',
@@ -358,6 +395,21 @@ const styles = StyleSheet.create({
   dropdownItemDesc: {
     fontSize: 14,
     color: '#666',
+  },
+  messageButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#e0e7ff',
+    borderRadius: 6,
+    marginLeft: 12,
+  },
+  messageButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#003071',
   },
   mapContainer: {
     flex: 1,

@@ -7,7 +7,9 @@ import {
   SearchScreen, 
   MapScreen, 
   NotificationsScreen, 
-  MyItemsScreen 
+  MyItemsScreen,
+  MessagesScreen,
+  ChatScreen
 } from './src/screens';
 import BottomNav from './src/screens/components/BottomNav';
 import { Screen } from './src/types';
@@ -15,6 +17,12 @@ import { Screen } from './src/types';
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [screen, setScreen] = useState<Screen>('home');
+  const [screenParams, setScreenParams] = useState<any>({});
+
+  const navigate = (newScreen: Screen, params?: any) => {
+    setScreen(newScreen);
+    setScreenParams(params || {});
+  };
 
   if (!isLoggedIn) {
     return <LoginScreen onLogin={() => setIsLoggedIn(true)} />;
@@ -23,9 +31,9 @@ export default function App() {
   const renderScreen = () => {
     switch (screen) {
       case 'home':
-        return <HomeScreen onNavigate={setScreen} />;
+        return <HomeScreen onNavigate={navigate} />;
       case 'report':
-        return <ReportItemScreen onNavigate={setScreen} />;
+        return <ReportItemScreen onNavigate={navigate} />;
       case 'search':
         return <SearchScreen />;
       case 'map':
@@ -33,9 +41,13 @@ export default function App() {
       case 'notifications':
         return <NotificationsScreen />;
       case 'myitems':
-        return <MyItemsScreen onNavigate={setScreen} />;
+        return <MyItemsScreen onNavigate={navigate} />;
+      case 'messages':
+        return <MessagesScreen onNavigate={navigate} />;
+      case 'chat':
+        return <ChatScreen threadId={screenParams.threadId} claimId={screenParams.claimId} onNavigate={navigate} />;
       default:
-        return <HomeScreen onNavigate={setScreen} />;
+        return <HomeScreen onNavigate={navigate} />;
     }
   };
 
@@ -44,7 +56,7 @@ export default function App() {
       <View style={styles.content}>
         {renderScreen()}
       </View>
-      <BottomNav currentScreen={screen} onNavigate={setScreen} />
+      <BottomNav currentScreen={screen} onNavigate={navigate} />
     </View>
   );
 }

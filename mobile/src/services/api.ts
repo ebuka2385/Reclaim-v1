@@ -106,6 +106,127 @@ class ApiService {
       return []; // Return empty array on error
     }
   }
+
+  // Claims API
+  async createClaim(itemId: string) {
+    const response = await fetch(`${API_BASE_URL}/claims`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        itemId,
+        ownerId: DEFAULT_USER_ID,
+      }),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to create claim' }));
+      throw new Error(error.error || 'Failed to create claim');
+    }
+    return response.json();
+  }
+
+  async approveClaim(claimId: string) {
+    const response = await fetch(`${API_BASE_URL}/claims/${claimId}/approve`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ finderId: DEFAULT_USER_ID }),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to approve claim' }));
+      throw new Error(error.error || 'Failed to approve claim');
+    }
+    return response.json();
+  }
+
+  async denyClaim(claimId: string) {
+    const response = await fetch(`${API_BASE_URL}/claims/${claimId}/deny`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ finderId: DEFAULT_USER_ID }),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to deny claim' }));
+      throw new Error(error.error || 'Failed to deny claim');
+    }
+    return response.json();
+  }
+
+  async markHandedOff(claimId: string) {
+    const response = await fetch(`${API_BASE_URL}/claims/${claimId}/handoff`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ finderId: DEFAULT_USER_ID }),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to mark as handed off' }));
+      throw new Error(error.error || 'Failed to mark as handed off');
+    }
+    return response.json();
+  }
+
+  async confirmReceipt(claimId: string) {
+    const response = await fetch(`${API_BASE_URL}/claims/${claimId}/confirm`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ claimerId: DEFAULT_USER_ID }),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to confirm receipt' }));
+      throw new Error(error.error || 'Failed to confirm receipt');
+    }
+    return response.json();
+  }
+
+  async getClaim(claimId: string) {
+    const response = await fetch(`${API_BASE_URL}/claims/${claimId}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch claim');
+    }
+    return response.json();
+  }
+
+  // Messages API
+  async getConversations() {
+    const response = await fetch(`${API_BASE_URL}/messages/user/${DEFAULT_USER_ID}`);
+    if (!response.ok) {
+      return [];
+    }
+    return response.json();
+  }
+
+  async getMessages(threadId: string) {
+    const response = await fetch(`${API_BASE_URL}/messages/threads/${threadId}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch messages');
+    }
+    const data = await response.json();
+    return data.messages || [];
+  }
+
+  async sendMessage(threadId: string, text: string) {
+    const response = await fetch(`${API_BASE_URL}/messages/threads/${threadId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: DEFAULT_USER_ID,
+        text,
+      }),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to send message' }));
+      throw new Error(error.error || 'Failed to send message');
+    }
+    return response.json();
+  }
+
+  async ensureThread(claimId: string) {
+    const response = await fetch(`${API_BASE_URL}/messages/threads/claim/${claimId}`, {
+      method: 'POST',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to create thread');
+    }
+    return response.json();
+  }
 }
 
 export const apiService = new ApiService();

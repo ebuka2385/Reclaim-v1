@@ -30,28 +30,28 @@ export default function BottomNav({ currentScreen, onNavigate }: BottomNavProps)
         onPress={() => onNavigate('search')}
       >
         <Ionicons 
-          name={currentScreen === 'search' ? 'search' : 'search-outline'} 
-          size={24} 
-          color={currentScreen === 'search' ? '#fff' : '#b8c5d6'} 
-          style={styles.icon}
-        />
-        <Text style={[styles.label, currentScreen === 'search' && styles.activeLabel]}>
-          Search
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity 
-        style={styles.tab}
-        onPress={() => onNavigate('search')}
-      >
-        <Ionicons 
           name={currentScreen === 'search' || currentScreen === 'map' ? 'map' : 'map-outline'} 
           size={24} 
           color={currentScreen === 'search' || currentScreen === 'map' ? '#fff' : '#b8c5d6'} 
           style={styles.icon}
         />
         <Text style={[styles.label, (currentScreen === 'search' || currentScreen === 'map') && styles.activeLabel]}>
-          Map
+          Search
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        style={styles.tab}
+        onPress={() => onNavigate('messages')}
+      >
+        <Ionicons 
+          name={currentScreen === 'messages' || currentScreen === 'chat' ? 'chatbubbles' : 'chatbubbles-outline'} 
+          size={24} 
+          color={currentScreen === 'messages' || currentScreen === 'chat' ? '#fff' : '#b8c5d6'} 
+          style={styles.icon}
+        />
+        <Text style={[styles.label, (currentScreen === 'messages' || currentScreen === 'chat') && styles.activeLabel]}>
+          Messages
         </Text>
       </TouchableOpacity>
 

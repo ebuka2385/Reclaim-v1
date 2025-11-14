@@ -1,5 +1,9 @@
-import { Router } from 'express';
-import itemRoutes from './item.routes';
+import { Router } from "express";
+import itemRoutes from "./item.routes";
+import claimRoutes from "./claim.routes";
+import messagingRoutes from "./messaging.routes";
+
+// Will import all other routes here when created
 
 const router: Router = Router();
 
@@ -10,6 +14,12 @@ router.get('/health', (_req, res) => {
 
 // Item routes
 router.use('/items', itemRoutes);
+
+// Claim routes
+router.use('/claims', claimRoutes);
+
+// Messaging routes
+router.use("/messages", messagingRoutes);
 
 export default router;
 

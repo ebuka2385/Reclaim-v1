@@ -13,7 +13,7 @@ describe('BottomNav Logic', () => {
   });
 
   it('should call navigation with correct screen names', () => {
-    const screens: Screen[] = ['home', 'search', 'map', 'notifications'];
+    const screens: Screen[] = ['home', 'search', 'messages', 'notifications'];
     
     screens.forEach(screen => {
       mockOnNavigate(screen);
@@ -22,10 +22,10 @@ describe('BottomNav Logic', () => {
   });
 
   it('should validate screen types', () => {
-    const validScreens: Screen[] = ['home', 'report', 'search', 'map', 'notifications', 'myitems'];
+    const validScreens: Screen[] = ['home', 'report', 'search', 'map', 'notifications', 'myitems', 'messages', 'chat'];
     
     validScreens.forEach(screen => {
-      expect(['home', 'report', 'search', 'map', 'notifications', 'myitems']).toContain(screen);
+      expect(['home', 'report', 'search', 'map', 'notifications', 'myitems', 'messages', 'chat']).toContain(screen);
     });
   });
 

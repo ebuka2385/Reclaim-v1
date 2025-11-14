@@ -22,10 +22,10 @@ describe('HomeScreen Logic', () => {
   });
 
   it('should validate screen types', () => {
-    const validScreens: Screen[] = ['home', 'report', 'search', 'map', 'notifications', 'myitems'];
+    const validScreens: Screen[] = ['home', 'report', 'search', 'map', 'notifications', 'myitems', 'messages', 'chat'];
     
     validScreens.forEach(screen => {
-      expect(['home', 'report', 'search', 'map', 'notifications', 'myitems']).toContain(screen);
+      expect(['home', 'report', 'search', 'map', 'notifications', 'myitems', 'messages', 'chat']).toContain(screen);
     });
   });
 });

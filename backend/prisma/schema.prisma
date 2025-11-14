@@ -16,6 +16,8 @@ model User {
   createdAt DateTime @default(now())
   items     Item[]
   notifications Notification[]
+  claims    Claim[]    @relation("UserClaims")
+  messages  Message[]  @relation("UserMessages")
 }
 
 model Item {
@@ -27,6 +29,7 @@ model Item {
   userId      String
   user        User       @relation(fields: [userId], references: [userId], onDelete: Cascade)
   archives    Archive[]
+  claims      Claim[]
   latitude    Float?
   longitude   Float?
 
@@ -55,9 +58,68 @@ model Archive {
   @@index([itemId])
 }
 
+model Claim {
+  claimId   String @id @default(cuid())
+  itemId    String
+  claimerId String
+  status    ClaimStatus @default(PENDING)
+  description String? 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt 
+
+  item    Item  @relation(fields: [itemId], references: [itemId], onDelete: Cascade)
+  claimer User  @relation("UserClaims", fields: [claimerId], references: [userId], onDelete: Cascade)
+  threads Thread[]
+
+  @@index([itemId])
+  @@index([claimerId])
+  @@index([status])
+}
+
+model Thread {
+  threadId    String  @id @default(cuid())
+  claimId     String  
+  claimerId   String  
+  finderId    String  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  archived    Boolean   @default(false)
+  hidden      Boolean   @default(false)
+
+  claim     Claim     @relation(fields: [claimId], references: [claimId], onDelete: Cascade)
+  messages  Message[]
+
+  @@index([claimId])
+  @@index([claimerId])
+  @@index([finderId])
+}
+
+model Message {
+  messageId   String @id @default(cuid())
+  threadId    String
+  userId      String
+  text        String
+  createdAt   DateTime    @default(now())
+  read        Boolean     @default(false)
+
+  thread      Thread      @relation(fields: [threadId], references: [threadId], onDelete: Cascade)
+  user        User        @relation("UserMessages", fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@index([threadId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
 enum ItemStatus {
   LOST
   FOUND
   CLAIMED
+}
+
+enum ClaimStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  VERIFIED
 }
 

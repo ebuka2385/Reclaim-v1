@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://172.20.101.164:3000';
+const API_BASE_URL = 'http://172.20.152.210:3000';
 const DEFAULT_USER_ID = 'temp-user-id'; // Default user for demo
 
 export interface CreateItemRequest {
@@ -39,6 +39,12 @@ class ApiService {
       ...(itemData.longitude !== undefined && { longitude: itemData.longitude }),
     };
 
+    console.log('📤 Creating item with location:', {
+      hasLocation: !!(itemData.latitude && itemData.longitude),
+      lat: itemData.latitude,
+      lng: itemData.longitude,
+    });
+
     const response = await fetch(`${API_BASE_URL}/items`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -51,7 +57,11 @@ class ApiService {
     }
 
     const data = await response.json();
-    // Map itemId to id if needed
+    console.log('✅ Item created:', {
+      id: data.itemId || data.id,
+      hasLocation: !!(data.latitude && data.longitude),
+    });
+    
     if (data.itemId && !data.id) {
       data.id = data.itemId;
     }
@@ -95,15 +105,16 @@ class ApiService {
     try {
       const response = await fetch(`${API_BASE_URL}/items/map/pins`);
       if (!response.ok) {
-        // Return empty array instead of throwing - map will still work
         console.warn('Failed to fetch map pins:', response.status, response.statusText);
         return [];
       }
       const data = await response.json();
-      return data.pins || [];
-    } catch (error) {
-      console.error('Error fetching map pins:', error);
-      return []; // Return empty array on error
+      const pins = data.pins || [];
+      console.log(`✅ Loaded ${pins.length} map pins`);
+      return pins;
+    } catch (error: any) {
+      console.error('❌ Error fetching map pins:', error.message || error);
+      return [];
     }
   }
 

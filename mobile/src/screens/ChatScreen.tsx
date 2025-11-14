@@ -53,8 +53,20 @@ export default function ChatScreen({ threadId, claimId, onNavigate }: ChatScreen
 
   const loadClaim = async () => {
     try {
-      const claimData = await apiService.getClaim(claimId);
-      setClaim(claimData);
+      // Get claim from conversations or fetch directly
+      const conversations = await apiService.getConversations();
+      const foundClaim = conversations.find((conv: any) => conv.claim?.claimId === claimId)?.claim;
+      if (foundClaim) {
+        setClaim(foundClaim);
+      } else {
+        // Fallback: try to get claim directly (if endpoint exists)
+        try {
+          const claimData = await apiService.getClaim(claimId);
+          setClaim(claimData);
+        } catch {
+          console.warn('Could not load claim details');
+        }
+      }
     } catch (error) {
       console.error('Failed to load claim:', error);
     }
@@ -199,7 +211,7 @@ export default function ChatScreen({ threadId, claimId, onNavigate }: ChatScreen
 
   const isFinder = claim?.finderId === DEFAULT_USER_ID;
   const isClaimer = claim?.claimerId === DEFAULT_USER_ID;
-  const canChat = claim?.status === 'ACCEPTED';
+  const canChat = claim?.status === 'ACCEPTED' || claim?.status === 'APPROVED';
 
   if (loading) {
     return (
@@ -225,7 +237,7 @@ export default function ChatScreen({ threadId, claimId, onNavigate }: ChatScreen
         </View>
       </View>
 
-      {claim && claim.status === 'OPEN' && isFinder && (
+      {claim && (claim.status === 'OPEN' || claim.status === 'PENDING') && isFinder && (
         <View style={styles.actionBar}>
           <TouchableOpacity
             style={[styles.actionButton, styles.approveButton]}
@@ -246,7 +258,7 @@ export default function ChatScreen({ threadId, claimId, onNavigate }: ChatScreen
         </View>
       )}
 
-      {claim && claim.status === 'ACCEPTED' && claim.handedOff && isClaimer && (
+      {claim && (claim.status === 'ACCEPTED' || claim.status === 'APPROVED') && claim.handedOff && isClaimer && (
         <View style={styles.actionBar}>
           <TouchableOpacity
             style={[styles.actionButton, styles.confirmButton]}
@@ -259,7 +271,7 @@ export default function ChatScreen({ threadId, claimId, onNavigate }: ChatScreen
         </View>
       )}
 
-      {claim && claim.status === 'ACCEPTED' && !claim.handedOff && isFinder && (
+      {claim && (claim.status === 'ACCEPTED' || claim.status === 'APPROVED') && !claim.handedOff && isFinder && (
         <View style={styles.actionBar}>
           <TouchableOpacity
             style={[styles.actionButton, styles.handoffButton]}

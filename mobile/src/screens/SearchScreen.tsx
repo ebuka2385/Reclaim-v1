@@ -1,8 +1,10 @@
-import { View, Text, TextInput, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, TextInput, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { useState, useEffect, useMemo } from 'react';
 import { WebView } from 'react-native-webview';
 import * as Location from 'expo-location';
+import { Ionicons } from '@expo/vector-icons';
 import { apiService } from '../services/api';
+import { Screen } from '../types';
 
 interface MapPin {
   itemId: string;
@@ -13,11 +15,17 @@ interface MapPin {
   description?: string;
 }
 
-export default function SearchScreen() {
+interface SearchScreenProps {
+  onNavigate?: (screen: Screen, params?: any) => void;
+}
+
+export default function SearchScreen({ onNavigate }: SearchScreenProps = {}) {
   const [allPins, setAllPins] = useState<MapPin[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [selectedPin, setSelectedPin] = useState<MapPin | null>(null);
+  const [mapRef, setMapRef] = useState<any>(null);
 
   useEffect(() => {
     getCurrentLocation();
@@ -60,10 +68,12 @@ export default function SearchScreen() {
 
   const loadMapPins = async () => {
     try {
+      setLoading(true);
       const mapPins = await apiService.getMapPins();
+      console.log(`📍 Map pins loaded: ${mapPins.length} pins`);
       setAllPins(mapPins);
     } catch (error) {
-      console.error('Failed to load map pins:', error);
+      console.error('❌ Failed to load map pins:', error);
       setAllPins([]);
     } finally {
       setLoading(false);
@@ -75,21 +85,27 @@ export default function SearchScreen() {
     if (!searchQuery.trim()) {
       return allPins;
     }
-    const query = searchQuery.toLowerCase();
-    return allPins.filter(pin =>
+    const query = searchQuery.toLowerCase().trim();
+    const filtered = allPins.filter(pin =>
       pin.title.toLowerCase().includes(query) ||
       (pin.description && pin.description.toLowerCase().includes(query))
     );
+    console.log(`🔍 Search "${query}": ${filtered.length} of ${allPins.length} pins match`);
+    return filtered;
   }, [allPins, searchQuery]);
 
   // Generate map HTML
   const mapHtml = useMemo(() => {
-    // Use user location if available, otherwise use center of pins, or default
+    // Use selected pin if available, otherwise user location, then center of pins, or default
     let centerLat = 37.7749; // Default fallback
     let centerLng = -122.4194;
     let zoom = 15;
 
-    if (userLocation) {
+    if (selectedPin) {
+      centerLat = selectedPin.latitude;
+      centerLng = selectedPin.longitude;
+      zoom = 18;
+    } else if (userLocation) {
       centerLat = userLocation.latitude;
       centerLng = userLocation.longitude;
       zoom = 16;
@@ -197,8 +213,8 @@ export default function SearchScreen() {
         </script>
       </body>
       </html>
-    `;
-  }, [filteredPins, userLocation]);
+      `;
+    }, [filteredPins, userLocation, selectedPin]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -215,10 +231,53 @@ export default function SearchScreen() {
           autoCapitalize="none"
           autoCorrect={false}
         />
-        {searchQuery.length > 0 && (
-          <Text style={styles.resultCount}>
-            {filteredPins.length} {filteredPins.length === 1 ? 'item' : 'items'} found
-          </Text>
+        {searchQuery.length > 0 && filteredPins.length > 0 && (
+          <View style={styles.dropdown}>
+            <FlatList
+              data={filteredPins}
+              keyExtractor={(item) => item.itemId}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.dropdownItem}
+                  onPress={() => {
+                    setSelectedPin(item);
+                    setSearchQuery(item.title);
+                  }}
+                >
+                  <View style={styles.dropdownItemContent}>
+                    <View style={styles.dropdownItemText}>
+                      <Text style={styles.dropdownItemTitle}>{item.title}</Text>
+                      {item.description && (
+                        <Text style={styles.dropdownItemDesc} numberOfLines={1}>
+                          {item.description}
+                        </Text>
+                      )}
+                    </View>
+                    {onNavigate && (
+                      <TouchableOpacity
+                        style={styles.messageButton}
+                        onPress={async (e) => {
+                          e.stopPropagation();
+                          try {
+                            const claim = await apiService.createClaim(item.itemId);
+                            Alert.alert('Claim Created', 'Your message request has been sent!', [
+                              { text: 'OK', onPress: () => onNavigate('messages') },
+                            ]);
+                          } catch (error: any) {
+                            Alert.alert('Error', error.message || 'Failed to create claim');
+                          }
+                        }}
+                      >
+                        <Ionicons name="chatbubble" size={16} color="#003071" />
+                        <Text style={styles.messageButtonText}>Message</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              )}
+              style={styles.dropdownList}
+            />
+          </View>
         )}
       </View>
 
@@ -235,22 +294,22 @@ export default function SearchScreen() {
             domStorageEnabled={true}
             showsVerticalScrollIndicator={false}
             showsHorizontalScrollIndicator={false}
-            key={filteredPins.length + (userLocation ? 1 : 0)} // Force re-render when pins change
+            key={filteredPins.length + (selectedPin ? selectedPin.itemId : '') + (userLocation ? 1 : 0)} // Force re-render when pins change
           />
         )}
-      </View>
+                </View>
 
       <View style={styles.legend}>
         {userLocation && (
           <View style={styles.legendItem}>
             <View style={[styles.marker, { backgroundColor: '#003071' }]} />
             <Text style={styles.legendText}>You</Text>
-          </View>
+              </View>
         )}
         <View style={styles.legendItem}>
           <View style={[styles.marker, { backgroundColor: '#ef4444' }]} />
           <Text style={styles.legendText}>Lost</Text>
-        </View>
+            </View>
         <View style={styles.legendItem}>
           <View style={[styles.marker, { backgroundColor: '#10b981' }]} />
           <Text style={styles.legendText}>Found</Text>
@@ -293,6 +352,64 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#666',
     fontWeight: '500',
+  },
+  dropdown: {
+    position: 'absolute',
+    top: 60,
+    left: 16,
+    right: 16,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    maxHeight: 200,
+    zIndex: 1000,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  dropdownList: {
+    maxHeight: 200,
+  },
+  dropdownItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+  },
+  dropdownItemContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dropdownItemText: {
+    flex: 1,
+  },
+  dropdownItemTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111',
+    marginBottom: 4,
+  },
+  dropdownItemDesc: {
+    fontSize: 14,
+    color: '#666',
+  },
+  messageButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#e0e7ff',
+    borderRadius: 6,
+    marginLeft: 12,
+  },
+  messageButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#003071',
   },
   mapContainer: {
     flex: 1,

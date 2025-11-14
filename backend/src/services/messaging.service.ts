@@ -80,7 +80,7 @@ export class MessagingService {
 
   // Lists messages for a thread with pagination
   // Verifies user has access before listing
-  async listMessages(threadId: string, userId: string, cursor: string | null, limit: number = 50): Promise<{ messages: any[]; nextCursor: string | null }> {
+  async listMessages(threadId: string, userId: string, cursor: string | null = null, limit: number = 50): Promise<{ messages: any[]; nextCursor: string | null }> {
     // Verify user has access to this thread
     await this.verifyParticipantAccess(threadId, userId);
 

@@ -113,7 +113,7 @@ describe('ItemController', () => {
 
       expect(responseStatus).toHaveBeenCalledWith(400);
       expect(responseJson).toHaveBeenCalledWith({ 
-        error: 'Invalid status. Must be LOST, FOUND, or CLAIMED' 
+        error: 'Unfortunately, the status is invalid :( Must be LOST, FOUND, or CLAIMED' 
       });
     });
   });
@@ -145,7 +145,7 @@ describe('ItemController', () => {
       await itemController.getItemById(mockRequest as Request, mockResponse as Response);
 
       expect(responseStatus).toHaveBeenCalledWith(404);
-      expect(responseJson).toHaveBeenCalledWith({ error: 'Item not found' });
+      expect(responseJson).toHaveBeenCalledWith({ error: "Item wasn't able to be found" });
     });
   });
 });

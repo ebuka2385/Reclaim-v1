@@ -8,3 +8,14 @@ export interface LoginResult {
   email: string;
   name: string;
 }
+
+export interface LoginRequest {
+  idToken: string;
+}
+
+export interface GoogleTokenPayload {
+  email: string;
+  name: string;
+  picture?: string;
+  sub: string;
+}

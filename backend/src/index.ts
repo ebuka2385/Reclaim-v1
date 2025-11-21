@@ -5,6 +5,12 @@ import routes from "./routes";
 
 config();
 
+// Validate required environment variables
+if (!process.env.GOOGLE_CLIENT_ID) {
+  console.warn("⚠️  WARNING: GOOGLE_CLIENT_ID is not set. Google Sign-In will not work.");
+  console.warn("   Set GOOGLE_CLIENT_ID in your .env file to enable authentication.");
+}
+
 const app = express();
 
 // Middleware

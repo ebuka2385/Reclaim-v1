@@ -18,6 +18,8 @@ model User {
   notifications Notification[]
   claims    Claim[]    @relation("UserClaims")
   messages  Message[]  @relation("UserMessages")
+  // TODO: Add deviceTokens relation after DeviceToken model is created
+  // - Add deviceTokens DeviceToken[] field to User model
 }
 
 model Item {
@@ -122,4 +124,33 @@ enum ClaimStatus {
   REJECTED
   VERIFIED
 }
+
+// ============================================================================
+// TODO: ADD DEVICE TOKEN MODEL FOR PUSH NOTIFICATIONS
+// ============================================================================
+// This model is required for Apple Push Notifications (APNs) via Expo
+// Add this model to enable push notification functionality
+//
+// Required fields for DeviceToken model:
+// - tokenId: String (primary key, use @id @default(cuid()))
+// - userId: String (foreign key to User)
+// - token: String (unique Expo push token)
+// - platform: String (default "ios", can be "ios" or "android")
+// - createdAt: DateTime (default now())
+// - updatedAt: DateTime (@updatedAt)
+//
+// Required relations:
+// - user: User relation (fields: [userId], references: [userId], onDelete: Cascade)
+//
+// Required indexes:
+// - Index on userId field
+// - Index on token field
+//
+// After adding this model:
+// 1. Add deviceTokens DeviceToken[] field to User model (line ~21)
+// 2. Run: npx prisma migrate dev --name add_device_token_model
+// 3. Run: npx prisma generate
+//
+// See backend/PUSH_NOTIFICATIONS_SETUP.md for complete setup instructions
+// ============================================================================
 

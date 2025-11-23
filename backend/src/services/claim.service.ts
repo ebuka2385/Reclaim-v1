@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { itemService } from "./item.service";
 import { messagingService } from "./messaging.service";
+import { notificationService } from "./notification.service";
 import { ItemStatus } from "../types/item.types";
 import { ClaimStatus } from "../types/claim.types";
 
@@ -38,8 +39,52 @@ export class ClaimService {
       },
     });
 
-    // TODO: When notification service is ready, send notification to finder
-    // TODO: Notification should appear via Apple Push Notifications (on iPhone screen) AND in app's notifications tab
+    // Send notification to finder about the new claim
+    try {
+      // Get claimer's name for the notification
+      const claimer = await prisma.user.findUnique({
+        where: { userId: ownerId },
+        select: { name: true },
+      });
+      const claimerName = claimer?.name || "Someone";
+
+      // Create notification message
+      const notificationMessage = `${claimerName} has claimed your item: "${item.title}"`;
+
+      // Send push notification (non-blocking - if it fails, claim still succeeds)
+      try {
+        await notificationService.sendPushNotification(
+          finderId,
+          "New Claim Request",
+          notificationMessage,
+          {
+            type: "claim_created",
+            claimId: claim.claimId,
+            itemId: item.itemId,
+            itemTitle: item.title,
+          }
+        );
+      } catch (pushError) {
+        // Log error but don't fail claim creation if push fails (e.g., user has no tokens)
+        console.error("Failed to send push notification:", pushError);
+      }
+
+      // Store notification in database for in-app notifications tab
+      try {
+        await prisma.notification.create({
+          data: {
+            userId: finderId,
+            message: notificationMessage,
+          },
+        });
+      } catch (dbError) {
+        // Log error but don't fail claim creation if notification storage fails
+        console.error("Failed to store notification in database:", dbError);
+      }
+    } catch (error) {
+      // Log error but don't fail claim creation if notification process fails
+      console.error("Error sending notification:", error);
+    }
 
     return claim;
   }

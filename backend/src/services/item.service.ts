@@ -35,7 +35,7 @@ export class ItemService {
 
   // creates a new item using the CreateItemDto
   async createItem(data: CreateItemDto): Promise<DataItem> {
-    return prisma.item.create({ data: {
+    return (prisma as any).item.create({ data: {
       title: data.title,
       description: data.description,
       status: data.status as PrismaItemStatus,
@@ -137,14 +137,14 @@ export class ItemService {
 
   // retrieves the map pins for all items (only items with coordinates)
   async getMapPins(): Promise<MapPin[]> {
-    const items = await prisma.item.findMany({
+    const items = await (prisma as any).item.findMany({
       where: {
         latitude: { not: null },
         longitude: { not: null },
       },
     });
     
-    return items.map(item => ({
+    return items.map((item: any) => ({
       itemId: item.itemId,
       title: item.title,
       description: item.description,

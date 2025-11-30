@@ -18,7 +18,7 @@ export class NotificationService {
     userId: string,
     token: string,
     platform: string = "ios"
-  ): Promise<any> {
+  ): Promise<{ tokenId: string; userId: string; token: string; platform: string; createdAt: Date; updatedAt: Date }> {
     // Validate token format (Expo tokens start with ExponentPushToken or ExponentsPushToken)
     if (!Expo.isExpoPushToken(token)) {
       throw new Error("Invalid Expo push token format");
@@ -70,7 +70,7 @@ export class NotificationService {
       select: { token: true },
     });
 
-    return tokens.map((t) => t.token);
+    return tokens.map((t: { token: string }) => t.token);
   }
 
   /**
@@ -111,13 +111,13 @@ export class NotificationService {
       try {
         const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
         // Extract ticket IDs (they're objects with status and id)
-        ticketChunk.forEach((ticket) => {
+        ticketChunk.forEach((ticket: { status: string; id?: string; message?: string; details?: { error?: string; expoPushToken?: string } }) => {
           if (ticket.status === "ok" && ticket.id) {
             tickets.push(ticket.id);
           } else if (ticket.status === "error") {
             console.error("Push notification error:", ticket.message);
             // Handle errors (e.g., invalid token, device not registered)
-            if (ticket.details?.error === "DeviceNotRegistered") {
+            if (ticket.details?.error === "DeviceNotRegistered" && ticket.details?.expoPushToken) {
               // Token is invalid, should remove it from database
               this.removeInvalidToken(ticket.details.expoPushToken);
             }

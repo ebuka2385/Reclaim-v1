@@ -110,21 +110,16 @@ export class NotificationService {
     for (const chunk of chunks) {
       try {
         const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
-        // Extract ticket IDs (they're objects with status and id)
         ticketChunk.forEach((ticket: { status: string; id?: string; message?: string; details?: { error?: string; expoPushToken?: string } }) => {
           if (ticket.status === "ok" && ticket.id) {
             tickets.push(ticket.id);
           } else if (ticket.status === "error") {
-            console.error("Push notification error:", ticket.message);
-            // Handle errors (e.g., invalid token, device not registered)
             if (ticket.details?.error === "DeviceNotRegistered" && ticket.details?.expoPushToken) {
-              // Token is invalid, should remove it from database
               this.removeInvalidToken(ticket.details.expoPushToken);
             }
           }
         });
       } catch (error) {
-        console.error("Error sending push notifications:", error);
         throw new Error("Failed to send push notifications");
       }
     }
@@ -133,21 +128,42 @@ export class NotificationService {
   }
 
   /**
-   * Sends a test notification to a user
-   * This is a convenience method for testing
-   * @param userId - The user ID
-   * @returns Array of ticket IDs
+   * Creates a notification in the database (for in-app notifications)
+   * @param userId - The user ID to notify
+   * @param message - The notification message
+   * @returns The created notification
    */
-  async sendTestNotification(userId: string): Promise<string[]> {
-    return this.sendPushNotification(
-      userId,
-      "Test Notification",
-      "This is a test notification from Reclaim! 🎉",
-      {
-        type: "test",
-        timestamp: new Date().toISOString(),
-      }
-    );
+  async createNotification(userId: string, message: string): Promise<any> {
+    return prisma.notification.create({
+      data: {
+        userId,
+        message,
+      },
+    });
+  }
+
+  /**
+   * Gets all notifications for a user
+   * @param userId - The user ID
+   * @returns Array of notifications
+   */
+  async getNotificationsByUser(userId: string): Promise<any[]> {
+    return prisma.notification.findMany({
+      where: { userId },
+      orderBy: { timestamp: 'desc' },
+    });
+  }
+
+  /**
+   * Marks a notification as read
+   * @param notifId - The notification ID
+   * @returns The updated notification
+   */
+  async markNotificationAsRead(notifId: string): Promise<any> {
+    return prisma.notification.update({
+      where: { notifId },
+      data: { read: true },
+    });
   }
 
   /**
@@ -160,10 +176,8 @@ export class NotificationService {
       await prisma.deviceToken.delete({
         where: { token },
       });
-      console.log(`Removed invalid token: ${token.substring(0, 20)}...`);
     } catch (error) {
       // Token might already be deleted, ignore
-      console.error("Error removing invalid token:", error);
     }
   }
 
@@ -179,4 +193,3 @@ export class NotificationService {
 }
 
 export const notificationService = new NotificationService();
-

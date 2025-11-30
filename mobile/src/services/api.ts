@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://172.20.152.210:3000';
+const API_BASE_URL = 'http://172.20.10.4:3000';
 const DEFAULT_USER_ID = 'temp-user-id'; // Default user for demo
 
 export interface CreateItemRequest {
@@ -236,6 +236,43 @@ class ApiService {
     });
     if (!response.ok) {
       throw new Error('Failed to create thread');
+    }
+    return response.json();
+  }
+
+  // Notifications API
+  async registerPushToken(token: string, platform: string = 'ios') {
+    const response = await fetch(`${API_BASE_URL}/notifications/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: DEFAULT_USER_ID,
+        token,
+        platform,
+      }),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to register token' }));
+      throw new Error(error.error || 'Failed to register token');
+    }
+    return response.json();
+  }
+
+  async getNotifications() {
+    const response = await fetch(`${API_BASE_URL}/notifications/user/${DEFAULT_USER_ID}`);
+    if (!response.ok) {
+      return [];
+    }
+    const data = await response.json();
+    return data.notifications || [];
+  }
+
+  async markNotificationAsRead(notifId: string) {
+    const response = await fetch(`${API_BASE_URL}/notifications/${notifId}/read`, {
+      method: 'PATCH',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to mark notification as read');
     }
     return response.json();
   }

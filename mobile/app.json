@@ -10,7 +10,11 @@
       "bundleIdentifier": "com.reclaim.app"
     },
     "android": {
-      "package": "com.reclaim.app"
+      "package": "com.reclaim.app",
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
     },
     "plugins": [
       [
@@ -18,7 +22,21 @@
         {
           "locationAlwaysAndWhenInUsePermission": "Allow Reclaim to use your location to show items on the map."
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#003071",
+          "sounds": []
+        }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "7d040fd8-4f45-4c5e-982f-5517e8031e54"
+      }
+    },
+    "owner": "ethanlma"
   }
 }

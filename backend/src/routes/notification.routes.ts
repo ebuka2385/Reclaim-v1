@@ -8,11 +8,6 @@ router.post("/register", (req, res) =>
   notificationController.registerToken(req, res)
 );
 
-// POST /notifications/test/:userId - Send a test notification
-router.post("/test/:userId", (req, res) =>
-  notificationController.sendTestNotification(req, res)
-);
-
 // POST /notifications/send - Send a custom notification
 router.post("/send", (req, res) =>
   notificationController.sendNotification(req, res)
@@ -21,6 +16,16 @@ router.post("/send", (req, res) =>
 // DELETE /notifications/token/:token - Remove a device token
 router.delete("/token/:token", (req, res) =>
   notificationController.removeToken(req, res)
+);
+
+// GET /notifications/user/:userId - Get all notifications for a user
+router.get("/user/:userId", (req, res) =>
+  notificationController.getNotifications(req, res)
+);
+
+// PATCH /notifications/:notifId/read - Mark notification as read
+router.patch("/:notifId/read", (req, res) =>
+  notificationController.markAsRead(req, res)
 );
 
 export default router;

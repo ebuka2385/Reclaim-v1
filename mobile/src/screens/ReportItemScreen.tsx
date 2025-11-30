@@ -97,14 +97,23 @@ export default function ReportItemScreen({ onNavigate }: ReportItemScreenProps) 
         itemData.longitude = selectedLocation.longitude;
       }
       
-      console.log('Submitting item:', itemData);
-      
       const response = await apiService.createItem(itemData);
-      console.log('Item created successfully:', response);
 
-      Alert.alert('Success', 'Item reported successfully!', [
-        { text: 'OK', onPress: () => onNavigate('myitems') }
-      ]);
+      Alert.alert(
+        'Success', 
+        'Item reported successfully! A notification has been created.',
+        [
+          { 
+            text: 'View Notifications', 
+            onPress: () => onNavigate('notifications'),
+            style: 'default'
+          },
+          { 
+            text: 'OK', 
+            onPress: () => onNavigate('myitems') 
+          }
+        ]
+      );
     } catch (error: any) {
       console.error('Error creating item:', error);
       Alert.alert('Error', error.message || 'Failed to submit item. Please try again.');
@@ -235,7 +244,7 @@ export default function ReportItemScreen({ onNavigate }: ReportItemScreenProps) 
               </TouchableOpacity>
 
               <TouchableOpacity 
-                style={[styles.locationButton, styles.mapButton]}
+                style={[styles.locationButton]}
                 onPress={() => setShowMap(true)}
               >
                 <Ionicons name="map" size={20} color="#003071" />
@@ -384,13 +393,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     padding: 12,
-    backgroundColor: '#f0f9ff',
+    backgroundColor: '#fff',
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#003071',
-  },
-  mapButton: {
-    backgroundColor: '#fff',
   },
   locationButtonText: {
     fontSize: 14,

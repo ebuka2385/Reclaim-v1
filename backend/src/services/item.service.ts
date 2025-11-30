@@ -4,6 +4,7 @@ import { PrismaClient, Prisma, Item as DataItem, ItemStatus as PrismaItemStatus,
 
 import type { CreateItemDto, UpdateItemDto, ItemFilter, MapPin} from "../types/item.types";
 import { ItemStatus as DtoItemStatus } from "../types/item.types";
+import { notificationService } from "./notification.service";
 
 const prisma = new PrismaClient();
 
@@ -35,7 +36,7 @@ export class ItemService {
 
   // creates a new item using the CreateItemDto
   async createItem(data: CreateItemDto): Promise<DataItem> {
-    return (prisma as any).item.create({ data: {
+    const item = await (prisma as any).item.create({ data: {
       title: data.title,
       description: data.description,
       status: data.status as PrismaItemStatus,
@@ -43,6 +44,40 @@ export class ItemService {
       latitude: data.latitude,
       longitude: data.longitude,
     } });
+
+    // Send notification when item is created
+    try {
+      const statusText = data.status === 'LOST' ? 'lost' : 'found';
+      const notificationMessage = `Your ${statusText} item "${data.title}" has been posted successfully!`;
+      
+      // Send push notification (non-blocking)
+      try {
+        await notificationService.sendPushNotification(
+          data.userId,
+          "Item Posted Successfully! ✅",
+          notificationMessage,
+          {
+            type: "item_created",
+            itemId: item.itemId,
+            itemTitle: item.title,
+            status: data.status,
+          }
+        );
+      } catch (pushError) {
+        // Silently fail - don't block item creation
+      }
+
+      // Store notification in database for in-app notifications tab
+      try {
+        await notificationService.createNotification(data.userId, notificationMessage);
+      } catch (dbError) {
+        // Silently fail - don't block item creation
+      }
+    } catch (error) {
+      // Silently fail - don't block item creation
+    }
+
+    return item;
   }
 
   // updates the item status from the item"s id and based on the new status

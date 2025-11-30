@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { 
   LoginScreen, 
@@ -13,6 +13,7 @@ import {
 } from './src/screens';
 import BottomNav from './src/screens/components/BottomNav';
 import { Screen } from './src/types';
+import { notificationService } from './src/services/notifications';
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -23,6 +24,34 @@ export default function App() {
     setScreen(newScreen);
     setScreenParams(params || {});
   };
+
+  // Initialize notifications when user logs in
+  useEffect(() => {
+    if (isLoggedIn) {
+      // Register push token
+      notificationService.initialize();
+
+      // Set up notification listeners
+      const cleanup = notificationService.setupListeners(
+        () => {
+          // Notification received in foreground - handled by Expo's notification handler
+        },
+        (response) => {
+          const data = response.notification.request.content.data;
+          
+          if (data?.type === 'claim_created' || data?.type === 'claim_approved' || data?.type === 'item_created') {
+            if (data.claimId) {
+              navigate('messages');
+            } else {
+              navigate('notifications');
+            }
+          }
+        }
+      );
+
+      return cleanup;
+    }
+  }, [isLoggedIn]);
 
   if (!isLoggedIn) {
     return <LoginScreen onLogin={() => setIsLoggedIn(true)} />;

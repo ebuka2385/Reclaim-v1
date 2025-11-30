@@ -42,40 +42,6 @@ export class NotificationController {
   }
 
   /**
-   * POST /notifications/test/:userId
-   * Sends a test push notification to a user
-   * This is for testing purposes only
-   */
-  async sendTestNotification(req: Request, res: Response): Promise<void> {
-    try {
-      const { userId } = req.params;
-
-      if (!userId) {
-        res.status(400).json({ error: "Missing required parameter: userId" });
-        return;
-      }
-
-      const tickets = await notificationService.sendTestNotification(userId);
-
-      res.json({
-        message: "Test notification sent successfully",
-        tickets,
-        count: tickets.length,
-      });
-    } catch (error) {
-      if (error instanceof Error) {
-        if (error.message.includes("no registered device tokens")) {
-          res.status(404).json({ error: error.message });
-        } else {
-          res.status(500).json({ error: "Failed to send test notification" });
-        }
-      } else {
-        res.status(500).json({ error: "Failed to send test notification" });
-      }
-    }
-  }
-
-  /**
    * POST /notifications/send
    * Sends a custom push notification to a user
    * Body: { userId: string, title: string, body: string, data?: object }
@@ -134,6 +100,47 @@ export class NotificationController {
       res.json({ message: "Device token removed successfully" });
     } catch (error) {
       res.status(500).json({ error: "Failed to remove device token" });
+    }
+  }
+
+  /**
+   * GET /notifications/user/:userId
+   * Gets all notifications for a user
+   */
+  async getNotifications(req: Request, res: Response): Promise<void> {
+    try {
+      const { userId } = req.params;
+
+      if (!userId) {
+        res.status(400).json({ error: "Missing required parameter: userId" });
+        return;
+      }
+
+      const notifications = await notificationService.getNotificationsByUser(userId);
+      res.json({ notifications });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch notifications" });
+    }
+  }
+
+  /**
+   * PATCH /notifications/:notifId/read
+   * Marks a notification as read
+   */
+  async markAsRead(req: Request, res: Response): Promise<void> {
+    try {
+      const { notifId } = req.params;
+
+      if (!notifId) {
+        res.status(400).json({ error: "Missing required parameter: notifId" });
+        return;
+      }
+
+      const notification = await notificationService.markNotificationAsRead(notifId);
+
+      res.json({ notification });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to mark notification as read" });
     }
   }
 }

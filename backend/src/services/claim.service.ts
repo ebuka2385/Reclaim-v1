@@ -93,6 +93,7 @@ export class ClaimService {
   async approveClaim(claimId: string, finderId: string): Promise<any> {
     const claim = await (prisma as any).claim.findUnique({
       where: { claimId },
+      include: { item: true },
     });
 
     if (!claim) {
@@ -109,6 +110,37 @@ export class ClaimService {
       data: { status: ClaimStatus.ACCEPTED },
     });
     await messagingService.ensureThread(claimId);
+
+    // Send notification to claimer that their claim was approved
+    try {
+      const notificationMessage = `Your claim for "${claim.item.title}" has been approved! You can now message the finder.`;
+      
+      // Send push notification
+      try {
+        await notificationService.sendPushNotification(
+          claim.claimerId,
+          "Claim Approved! 🎉",
+          notificationMessage,
+          {
+            type: "claim_approved",
+            claimId: claim.claimId,
+            itemId: claim.item.itemId,
+            itemTitle: claim.item.title,
+          }
+        );
+      } catch (pushError) {
+        console.error("Failed to send push notification:", pushError);
+      }
+
+      // Store notification in database
+      try {
+        await notificationService.createNotification(claim.claimerId, notificationMessage);
+      } catch (dbError) {
+        console.error("Failed to store notification:", dbError);
+      }
+    } catch (error) {
+      console.error("Error sending approval notification:", error);
+    }
 
     return updatedClaim;
   }

@@ -59,6 +59,31 @@ export class AuthController {
       res.status(500).json({ error: "Failed to fetch user information" });
     }
   }
+
+  /**
+   * POST /auth/sync
+   * Syncs a Clerk user to the database
+   * Body: { email: string, name: string }
+   */
+  async syncUser(req: Request, res: Response): Promise<void> {
+    try {
+      const { email, name } = req.body;
+
+      if (!email) {
+        res.status(400).json({ error: "Missing required field: email" });
+        return;
+      }
+
+      const result = await authService.syncClerkUser(email, name || '');
+      res.json(result);
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(500).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: "Failed to sync user" });
+      }
+    }
+  }
 }
 
 export const authController = new AuthController();

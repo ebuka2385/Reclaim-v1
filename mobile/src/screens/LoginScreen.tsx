@@ -1,10 +1,29 @@
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ActivityIndicator, Alert } from 'react-native';
+import { useOAuth } from '@clerk/clerk-expo';
 
-interface LoginScreenProps {
-  onLogin: () => void;
-}
+export default function LoginScreen() {
+  const { startOAuthFlow } = useOAuth({ strategy: 'oauth_google' });
+  const [isLoading, setIsLoading] = React.useState(false);
 
-export default function LoginScreen({ onLogin }: LoginScreenProps) {
+  const onPress = React.useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const { createdSessionId, setActive } = await startOAuthFlow();
+
+      if (createdSessionId) {
+        await setActive!({ session: createdSessionId });
+      } else {
+        // Use signIn or signUp for next steps such as MFA
+        throw new Error('OAuth flow did not complete');
+      }
+    } catch (err: any) {
+      Alert.alert('Error', err.errors?.[0]?.message || 'Failed to sign in. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [startOAuthFlow]);
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
@@ -17,8 +36,16 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
             Use your CWRU credentials to access the platform
           </Text>
           
-          <TouchableOpacity style={styles.button} onPress={onLogin}>
+          <TouchableOpacity 
+            style={[styles.button, isLoading && styles.buttonDisabled]} 
+            onPress={onPress}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
             <Text style={styles.buttonText}>Sign in with CWRU SSO</Text>
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -77,5 +104,8 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
 });

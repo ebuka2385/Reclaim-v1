@@ -50,7 +50,6 @@ export default function SearchScreen({ onNavigate }: SearchScreenProps = {}) {
       // Get current location
       const location = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.Balanced,
-        timeout: 10000,
       });
       
       const coords = {
@@ -59,7 +58,6 @@ export default function SearchScreen({ onNavigate }: SearchScreenProps = {}) {
       };
       
       setUserLocation(coords);
-      console.log('✅ User location set:', coords.latitude, coords.longitude);
     } catch (error) {
       console.error('❌ Error getting location:', error);
       // Don't block the app if location fails
@@ -70,7 +68,6 @@ export default function SearchScreen({ onNavigate }: SearchScreenProps = {}) {
     try {
       setLoading(true);
       const mapPins = await apiService.getMapPins();
-      console.log(`📍 Map pins loaded: ${mapPins.length} pins`);
       setAllPins(mapPins);
     } catch (error) {
       console.error('❌ Failed to load map pins:', error);
@@ -90,7 +87,6 @@ export default function SearchScreen({ onNavigate }: SearchScreenProps = {}) {
       pin.title.toLowerCase().includes(query) ||
       (pin.description && pin.description.toLowerCase().includes(query))
     );
-    console.log(`🔍 Search "${query}": ${filtered.length} of ${allPins.length} pins match`);
     return filtered;
   }, [allPins, searchQuery]);
 

@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
+import { ClerkProvider, useAuth, useUser } from '@clerk/clerk-expo';
+import { tokenCache } from '@clerk/clerk-expo/token-cache';
 import { 
   LoginScreen, 
   HomeScreen, 
@@ -14,20 +16,54 @@ import {
 import BottomNav from './src/screens/components/BottomNav';
 import { Screen } from './src/types';
 import { notificationService } from './src/services/notifications';
+import { apiService } from './src/services/api';
 
-export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY || '';
+
+if (!publishableKey) {
+  throw new Error('Missing EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY environment variable');
+}
+
+function AppContent() {
+  const { isSignedIn, isLoaded } = useAuth();
+  const { user } = useUser();
   const [screen, setScreen] = useState<Screen>('home');
   const [screenParams, setScreenParams] = useState<any>({});
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const navigate = (newScreen: Screen, params?: any) => {
     setScreen(newScreen);
     setScreenParams(params || {});
   };
 
+  // Sync user to database when they sign in
+  useEffect(() => {
+    if (isSignedIn && isLoaded && user && !isSyncing) {
+      const syncUser = async () => {
+        try {
+          setIsSyncing(true);
+          const email = user.emailAddresses[0]?.emailAddress;
+          const name = user.fullName || user.firstName || email?.split('@')[0] || 'User';
+          
+          if (!email) {
+            return;
+          }
+          
+          await apiService.syncUser(email, name);
+        } catch (error) {
+          // Silently fail - don't block the app if sync fails
+        } finally {
+          setIsSyncing(false);
+        }
+      };
+      
+      syncUser();
+    }
+  }, [isSignedIn, isLoaded, user]);
+
   // Initialize notifications when user logs in
   useEffect(() => {
-    if (isLoggedIn) {
+    if (isSignedIn && isLoaded && !isSyncing) {
       // Register push token
       notificationService.initialize();
 
@@ -51,10 +87,14 @@ export default function App() {
 
       return cleanup;
     }
-  }, [isLoggedIn]);
+  }, [isSignedIn, isLoaded, isSyncing]);
 
-  if (!isLoggedIn) {
-    return <LoginScreen onLogin={() => setIsLoggedIn(true)} />;
+  if (!isLoaded) {
+    return null; // Or a loading spinner
+  }
+
+  if (!isSignedIn) {
+    return <LoginScreen />;
   }
 
   const renderScreen = () => {
@@ -87,6 +127,14 @@ export default function App() {
       </View>
       <BottomNav currentScreen={screen} onNavigate={navigate} />
     </View>
+  );
+}
+
+export default function App() {
+  return (
+    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+      <AppContent />
+    </ClerkProvider>
   );
 }
 

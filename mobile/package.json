@@ -12,12 +12,18 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
+    "@clerk/clerk-expo": "^2.19.6",
     "@expo/vector-icons": "^15.0.3",
+    "@react-native-async-storage/async-storage": "^2.2.0",
     "expo": "~54.0.0",
+    "expo-auth-session": "^7.0.9",
     "expo-location": "^19.0.7",
     "expo-notifications": "^0.28.19",
+    "expo-secure-store": "^15.0.7",
     "expo-status-bar": "~3.0.8",
+    "expo-web-browser": "^15.0.9",
     "react": "19.1.0",
+    "react-dom": "^19.2.0",
     "react-native": "0.81.5",
     "react-native-webview": "^13.16.0"
   },

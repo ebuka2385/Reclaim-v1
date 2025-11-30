@@ -1,6 +1,21 @@
 const API_BASE_URL = 'http://172.20.10.4:3000';
 const DEFAULT_USER_ID = 'temp-user-id'; // Default user for demo
 
+// Store current userId
+let currentUserId: string | null = null;
+
+export const setUserId = (userId: string) => {
+  currentUserId = userId;
+};
+
+export const getUserId = (): string => {
+  return currentUserId || DEFAULT_USER_ID;
+};
+
+export const clearUserId = () => {
+  currentUserId = null;
+};
+
 export interface CreateItemRequest {
   title: string;
   description: string;
@@ -34,16 +49,11 @@ class ApiService {
       title: itemData.title,
       description: itemData.description,
       status: itemData.status,
-      userId: DEFAULT_USER_ID,
+      userId: getUserId(),
       ...(itemData.latitude !== undefined && { latitude: itemData.latitude }),
       ...(itemData.longitude !== undefined && { longitude: itemData.longitude }),
     };
 
-    console.log('📤 Creating item with location:', {
-      hasLocation: !!(itemData.latitude && itemData.longitude),
-      lat: itemData.latitude,
-      lng: itemData.longitude,
-    });
 
     const response = await fetch(`${API_BASE_URL}/items`, {
       method: 'POST',
@@ -57,10 +67,6 @@ class ApiService {
     }
 
     const data = await response.json();
-    console.log('✅ Item created:', {
-      id: data.itemId || data.id,
-      hasLocation: !!(data.latitude && data.longitude),
-    });
     
     if (data.itemId && !data.id) {
       data.id = data.itemId;
@@ -105,15 +111,11 @@ class ApiService {
     try {
       const response = await fetch(`${API_BASE_URL}/items/map/pins`);
       if (!response.ok) {
-        console.warn('Failed to fetch map pins:', response.status, response.statusText);
         return [];
       }
       const data = await response.json();
-      const pins = data.pins || [];
-      console.log(`✅ Loaded ${pins.length} map pins`);
-      return pins;
+      return data.pins || [];
     } catch (error: any) {
-      console.error('❌ Error fetching map pins:', error.message || error);
       return [];
     }
   }
@@ -125,7 +127,7 @@ class ApiService {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         itemId,
-        ownerId: DEFAULT_USER_ID,
+        ownerId: getUserId(),
       }),
     });
     if (!response.ok) {
@@ -139,7 +141,7 @@ class ApiService {
     const response = await fetch(`${API_BASE_URL}/claims/${claimId}/approve`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ finderId: DEFAULT_USER_ID }),
+      body: JSON.stringify({ finderId: getUserId() }),
     });
     if (!response.ok) {
       const error = await response.json().catch(() => ({ error: 'Failed to approve claim' }));
@@ -152,7 +154,7 @@ class ApiService {
     const response = await fetch(`${API_BASE_URL}/claims/${claimId}/deny`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ finderId: DEFAULT_USER_ID }),
+      body: JSON.stringify({ finderId: getUserId() }),
     });
     if (!response.ok) {
       const error = await response.json().catch(() => ({ error: 'Failed to deny claim' }));
@@ -165,7 +167,7 @@ class ApiService {
     const response = await fetch(`${API_BASE_URL}/claims/${claimId}/handoff`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ finderId: DEFAULT_USER_ID }),
+      body: JSON.stringify({ finderId: getUserId() }),
     });
     if (!response.ok) {
       const error = await response.json().catch(() => ({ error: 'Failed to mark as handed off' }));
@@ -178,7 +180,7 @@ class ApiService {
     const response = await fetch(`${API_BASE_URL}/claims/${claimId}/confirm`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ claimerId: DEFAULT_USER_ID }),
+      body: JSON.stringify({ claimerId: getUserId() }),
     });
     if (!response.ok) {
       const error = await response.json().catch(() => ({ error: 'Failed to confirm receipt' }));
@@ -197,7 +199,7 @@ class ApiService {
 
   // Messages API
   async getConversations() {
-    const response = await fetch(`${API_BASE_URL}/messages/user/${DEFAULT_USER_ID}`);
+    const response = await fetch(`${API_BASE_URL}/messages/user/${getUserId()}`);
     if (!response.ok) {
       return [];
     }
@@ -206,7 +208,7 @@ class ApiService {
   }
 
   async getMessages(threadId: string) {
-    const response = await fetch(`${API_BASE_URL}/messages/threads/${threadId}?userId=${DEFAULT_USER_ID}`);
+    const response = await fetch(`${API_BASE_URL}/messages/threads/${threadId}?userId=${getUserId()}`);
     if (!response.ok) {
       throw new Error('Failed to fetch messages');
     }
@@ -219,7 +221,7 @@ class ApiService {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        userId: DEFAULT_USER_ID,
+        userId: getUserId(),
         text,
       }),
     });
@@ -246,7 +248,7 @@ class ApiService {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        userId: DEFAULT_USER_ID,
+        userId: getUserId(),
         token,
         platform,
       }),
@@ -259,7 +261,7 @@ class ApiService {
   }
 
   async getNotifications() {
-    const response = await fetch(`${API_BASE_URL}/notifications/user/${DEFAULT_USER_ID}`);
+    const response = await fetch(`${API_BASE_URL}/notifications/user/${getUserId()}`);
     if (!response.ok) {
       return [];
     }
@@ -275,6 +277,50 @@ class ApiService {
       throw new Error('Failed to mark notification as read');
     }
     return response.json();
+  }
+
+  // Auth API - Sync Clerk user to database
+  async syncUser(email: string, name: string) {
+    if (!API_BASE_URL) {
+      throw new Error('API_BASE_URL is not configured');
+    }
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/sync`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name }),
+      });
+      
+      const responseText = await response.text();
+      
+      if (!response.ok) {
+        let errorData;
+        try {
+          errorData = JSON.parse(responseText);
+        } catch {
+          errorData = { error: responseText || `HTTP ${response.status}: ${response.statusText}` };
+        }
+        throw new Error(errorData.error || `Failed to sync user: HTTP ${response.status}`);
+      }
+      
+      const data = JSON.parse(responseText);
+      
+      if (!data.userId) {
+        throw new Error('Server response missing userId');
+      }
+      
+      setUserId(data.userId);
+      return data;
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error(`Network error: Cannot reach server at ${API_BASE_URL}`);
+      }
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Failed to sync user');
+    }
   }
 }
 

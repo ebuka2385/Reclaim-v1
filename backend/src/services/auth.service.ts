@@ -126,6 +126,53 @@ export class AuthService {
       name: user.name,
     };
   }
+
+  /**
+   * Syncs a Clerk user to the database
+   * Creates a new user if they don't exist, otherwise returns existing user
+   * @param email - User's email from Clerk
+   * @param name - User's name from Clerk
+   * @returns User information and userId
+   */
+  async syncClerkUser(email: string, name: string): Promise<LoginResult> {
+    try {
+      if (!email) {
+        throw new Error("Email is required");
+      }
+
+      // Check if user exists in database
+      let user = await prisma.user.findUnique({
+        where: { email },
+      });
+
+      // Create user if they don't exist
+      if (!user) {
+        user = await prisma.user.create({
+          data: {
+            email,
+            name: name || email.split('@')[0],
+          },
+        });
+      } else {
+        // Update user name in case it changed in Clerk
+        user = await prisma.user.update({
+          where: { userId: user.userId },
+          data: { name: name || user.name },
+        });
+      }
+
+      return {
+        userId: user.userId,
+        email: user.email,
+        name: user.name,
+      };
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Sync failed: ${error.message}`);
+      }
+      throw new Error("Sync failed");
+    }
+  }
 }
 
 export const authService = new AuthService();

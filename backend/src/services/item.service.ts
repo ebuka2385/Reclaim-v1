@@ -4,7 +4,7 @@
 
 import { PrismaClient, Prisma, Item as DataItem, ItemStatus as PrismaItemStatus, Archive as DataArchive} from "@prisma/client";
 
-import type { CreateItemDto, UpdateItemDto, ItemFilter, MapPin} from "../types/item.types";
+import type { CreateItemDto, UpdateItemDto, ItemFilter, MapPin, MapBounds} from "../types/item.types";
 import { ItemStatus as DtoItemStatus } from "../types/item.types";
 import { notificationService } from "./notification.service";
 
@@ -45,6 +45,7 @@ export class ItemService {
       userId: data.userId,
       latitude: data.latitude,
       longitude: data.longitude,
+      category: data.category,
     } });
 
     // Send notification when item is created
@@ -98,7 +99,7 @@ export class ItemService {
     }
   }
 
-  // updates an item"s title, description, and/or status
+  // updates an item"s title, description, status, and/or category
   async updateItem(id: string, data: UpdateItemDto): Promise<DataItem | null> {
     try {
       const updateData: Prisma.ItemUpdateInput = {};
@@ -110,6 +111,9 @@ export class ItemService {
       }
       if (data.status != undefined) {
         updateData.status = data.status as PrismaItemStatus;
+      }
+      if (data.category != undefined) {
+        (updateData as any).category = data.category;
       }
       
       const item = await prisma.item.update({
@@ -147,6 +151,20 @@ export class ItemService {
     if (filter.userId) {
       where.userId = filter.userId;
     }
+    if (filter.category) {
+      (where as any).category = filter.category;
+    }
+    // Add bounds filtering if provided
+    if (filter.bounds) {
+      (where as any).latitude = {
+        gte: filter.bounds.south,  // latitude >= south (min)
+        lte: filter.bounds.north,  // latitude <= north (max)
+      };
+      (where as any).longitude = {
+        gte: filter.bounds.west,   // longitude >= west (min)
+        lte: filter.bounds.east,   // longitude <= east (max)
+      };
+    }
     let sortBy = "createdAt";
     if (filter.sortBy) {
       sortBy = filter.sortBy;
@@ -173,12 +191,27 @@ export class ItemService {
   }
 
   // retrieves the map pins for all items (only items with coordinates)
-  async getMapPins(): Promise<MapPin[]> {
+  // Optionally filters by map bounds if provided
+  async getMapPins(bounds?: MapBounds): Promise<MapPin[]> {
+    const where: any = {
+      latitude: { not: null },
+      longitude: { not: null },
+    };
+
+    // Add bounds filtering if provided
+    if (bounds) {
+      where.latitude = {
+        gte: bounds.south,  // latitude >= south (min)
+        lte: bounds.north,  // latitude <= north (max)
+      };
+      where.longitude = {
+        gte: bounds.west,   // longitude >= west (min)
+        lte: bounds.east,   // longitude <= east (max)
+      };
+    }
+
     const items = await (prisma as any).item.findMany({
-      where: {
-        latitude: { not: null },
-        longitude: { not: null },
-      },
+      where,
     });
     
     return items.map((item: any) => ({

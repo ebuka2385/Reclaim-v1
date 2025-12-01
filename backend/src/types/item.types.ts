@@ -15,6 +15,7 @@ export interface Item {
   status: ItemStatus;
   createdAt: string;
   userId?: string;
+  category?: string;
 }
 
 export interface CreateItemDto {
@@ -24,6 +25,7 @@ export interface CreateItemDto {
   userId: string;
   latitude?: number;
   longitude?: number;
+  category?: string;
 }
 
 export interface UpdateItemStatusDto {
@@ -34,11 +36,21 @@ export interface UpdateItemDto {
   title?: string;
   description?: string;
   status?: ItemStatus;
+  category?: string;
+}
+
+export interface MapBounds {
+  north: number;  // max latitude
+  south: number;  // min latitude
+  east: number;   // max longitude
+  west: number;   // min longitude
 }
 
 export interface ItemFilter {
   status?: ItemStatus;
   userId?: string;
+  category?: string;
+  bounds?: MapBounds;
   sortBy?: "createdAt" | "title" | "status";
   sortOrder?: "asc" | "desc";
 }

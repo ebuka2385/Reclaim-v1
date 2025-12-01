@@ -5,7 +5,7 @@
 import { Request, Response } from "express";
 import { itemService } from "../services/item.service";
 
-import { CreateItemDto, UpdateItemDto, ItemStatus, ItemFilter } from "../types/item.types";
+import { CreateItemDto, UpdateItemDto, ItemStatus, ItemFilter, MapBounds } from "../types/item.types";
 
 export class ItemController {
   // GET /items - Gets all the items
@@ -19,8 +19,10 @@ export class ItemController {
   }
 
   // GET /items/filter - Get items with filter
+  // Optional query parameters: status, userId, category, sortBy, sortOrder
+  // Optional bounds parameters: north, south, east, west (for map bounds filtering)
   async listItems(req: Request, res: Response): Promise<void> {
-    try {const validFilterKeys = ["status", "userId", "sortBy", "sortOrder"];
+    try {const validFilterKeys = ["status", "userId", "category", "sortBy", "sortOrder", "north", "south", "east", "west"];
       const queryKeys = Object.keys(req.query);
       
       for (const key of queryKeys) {
@@ -43,6 +45,32 @@ export class ItemController {
       
       if (req.query.userId) {
         filter.userId = req.query.userId as string;
+      }
+      
+      if (req.query.category) {
+        filter.category = req.query.category as string;
+      }
+      
+      // Parse bounds if all four parameters are provided
+      if (req.query.north && req.query.south && req.query.east && req.query.west) {
+        const north = parseFloat(req.query.north as string);
+        const south = parseFloat(req.query.south as string);
+        const east = parseFloat(req.query.east as string);
+        const west = parseFloat(req.query.west as string);
+        
+        // Validate bounds values
+        if (isNaN(north) || isNaN(south) || isNaN(east) || isNaN(west)) {
+          res.status(400).json({ error: "Invalid bounds parameters. All values must be valid numbers." });
+          return;
+        }
+        
+        // Validate bounds logic (north > south, east > west)
+        if (north <= south || east <= west) {
+          res.status(400).json({ error: "Invalid bounds: north must be greater than south, east must be greater than west." });
+          return;
+        }
+        
+        filter.bounds = { north, south, east, west };
       }
       
       if (req.query.sortBy) {
@@ -91,7 +119,7 @@ export class ItemController {
   // POST /items - Create new item
   async createItem(req: Request, res: Response): Promise<void> {
     try {
-      const { title, description, status, latitude, longitude } = req.body as CreateItemDto;
+      const { title, description, status, latitude, longitude, category } = req.body as CreateItemDto;
 
       if (!title || !description|| !status) {
         res.status(400).json({ error: "Missing required fields: title, description, status" });
@@ -109,7 +137,8 @@ export class ItemController {
         status, 
         userId: req.body.userId,
         latitude,
-        longitude
+        longitude,
+        category
       });
       res.status(201).json(item);
     } catch (error) {
@@ -141,14 +170,14 @@ export class ItemController {
     }
   }
 
-  // PATCH /items/:id - Update item (title, description, status)
+  // PATCH /items/:id - Update item (title, description, status, category)
   async updateItem(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const { title, description, status } = req.body as UpdateItemDto;
+      const { title, description, status, category } = req.body as UpdateItemDto;
 
-      if ((!title) && (!description) && (!status)) {
-        res.status(400).json({ error: "At least one field (title, description, status) must be provided" });
+      if ((!title) && (!description) && (!status) && (!category)) {
+        res.status(400).json({ error: "At least one field (title, description, status, category) must be provided" });
         return;
       }
 
@@ -157,7 +186,7 @@ export class ItemController {
         return;
       }
 
-      const item = await itemService.updateItem(id, { title, description, status });
+      const item = await itemService.updateItem(id, { title, description, status, category });
       
       if (!item) {
         res.status(404).json({ error: "Item not found" });
@@ -171,9 +200,34 @@ export class ItemController {
   }
 
   // GET /items/map/pins - Get map pins for all items
-  async getMapPins(_req: Request, res: Response): Promise<void> {
+  // Optional query parameters: north, south, east, west (for bounds filtering)
+  async getMapPins(req: Request, res: Response): Promise<void> {
     try {
-      const pins = await itemService.getMapPins();
+      let bounds: MapBounds | undefined = undefined;
+      
+      // Parse bounds from query parameters if provided
+      if (req.query.north && req.query.south && req.query.east && req.query.west) {
+        const north = parseFloat(req.query.north as string);
+        const south = parseFloat(req.query.south as string);
+        const east = parseFloat(req.query.east as string);
+        const west = parseFloat(req.query.west as string);
+        
+        // Validate bounds values
+        if (isNaN(north) || isNaN(south) || isNaN(east) || isNaN(west)) {
+          res.status(400).json({ error: "Invalid bounds parameters. All values must be valid numbers." });
+          return;
+        }
+        
+        // Validate bounds logic (north > south, east > west)
+        if (north <= south || east <= west) {
+          res.status(400).json({ error: "Invalid bounds: north must be greater than south, east must be greater than west." });
+          return;
+        }
+        
+        bounds = { north, south, east, west };
+      }
+      
+      const pins = await itemService.getMapPins(bounds);
       res.json({ pins });
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch map pins' });

@@ -1,4 +1,6 @@
-/// All code written in this file was created by Ethan Hunt and is completely original in terms of its use. I used several resources to help aid my coding process as I have never used Prisma or TypeScript before.
+// All code written in this file was created by Ethan Hunt and is completely original in terms of its use. I used several resources to help aid my coding process as I have never used Prisma or TypeScript before.
+
+// All comments were created by AI after the code was written. The prompt was "Add comments to the messaging service file"
 
 import { PrismaClient } from "@prisma/client";
 import { ClaimStatus } from "../types/claim.types";
@@ -203,6 +205,7 @@ export class MessagingService {
   // Returns threads where user is either claimer or finder
   // Filters out archived threads (denied claims) and hidden threads (completed claims)
   // Hidden threads are archived and not accessible to users
+  // Includes user emails for display after claim approval (REQ-3.4)
   async getConversationsByUser(userId: string): Promise<any[]> {
     const where: any = {
       OR: [
@@ -225,7 +228,7 @@ export class MessagingService {
       orderBy: { createdAt: "desc" },
     });
 
-    // Get last message for each thread
+    // Get last message and user emails for each thread
     const threadsWithLastMessage = await Promise.all(
       threads.map(async (thread: any) => {
         const lastMessage = await (prisma as any).message.findFirst({
@@ -233,9 +236,23 @@ export class MessagingService {
           orderBy: { createdAt: "desc" },
         });
 
+        // Get claimer and finder emails for display (REQ-3.4)
+        const claimer = await prisma.user.findUnique({
+          where: { userId: thread.claimerId },
+          select: { email: true, name: true },
+        });
+        const finder = await prisma.user.findUnique({
+          where: { userId: thread.finderId },
+          select: { email: true, name: true },
+        });
+
         return {
           ...thread,
           lastMessage: lastMessage || null,
+          claimerEmail: claimer?.email || null,
+          finderEmail: finder?.email || null,
+          claimerName: claimer?.name || null,
+          finderName: finder?.name || null,
         };
       })
     );

@@ -1,3 +1,7 @@
+// All code written in this file was created by AI. the prompt was: "Create a file for the authorization controller for the backend that follows the same format as the item.controller.ts file"
+
+// All comments were created by AI after the code was written. The prompt was "Add comments to the authorization controller file"
+
 import { Request, Response } from "express";
 import { authService } from "../services/auth.service";
 

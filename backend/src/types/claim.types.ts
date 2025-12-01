@@ -1,3 +1,7 @@
+// All code written in this file was created by AI. the prompt was: "Create type definitions for claims"
+
+// All comments were created by AI after the code was written. The prompt was "Add comments to the claim types file"
+
 export enum ClaimStatus {
   OPEN = "OPEN",
   ACCEPTED = "ACCEPTED",

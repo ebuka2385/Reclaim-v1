@@ -1,3 +1,7 @@
+// All code written in this file was created by AI. the prompt was: "Create a file for the messaging controller for the backend that follows the same format as the item.controller.ts file"
+
+// All comments were created by AI after the code was written. The prompt was "Add comments to the messaging controller file"
+
 import { Request, Response } from "express";
 import { messagingService } from "../services/messaging.service";
 

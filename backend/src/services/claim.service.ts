@@ -1,3 +1,7 @@
+// All code written in this file was created by Ethan Hunt and is completely original in terms of its use. I used several resources to help aid my coding process as I have never used Prisma or TypeScript before.
+
+// All comments were created by AI after the code was written. The prompt was "Add comments to the claim service file"
+
 import { PrismaClient } from "@prisma/client";
 import { itemService } from "./item.service";
 import { messagingService } from "./messaging.service";
@@ -142,13 +146,32 @@ export class ClaimService {
       console.error("Error sending approval notification:", error);
     }
 
-    return updatedClaim;
+    // Get user emails for display after approval (REQ-3.4)
+    const claimer = await prisma.user.findUnique({
+      where: { userId: claim.claimerId },
+      select: { email: true, name: true },
+    });
+    const finder = await prisma.user.findUnique({
+      where: { userId: claim.finderId },
+      select: { email: true, name: true },
+    });
+
+    // Return claim with emails included
+    return {
+      ...updatedClaim,
+      item: claim.item,
+      claimerEmail: claimer?.email || null,
+      finderEmail: finder?.email || null,
+      claimerName: claimer?.name || null,
+      finderName: finder?.name || null,
+    };
   }
 
   // denies a claim and archives the chat conversation if it exists
   async denyClaim(claimId: string, finderId: string): Promise<any> {
     const claim = await (prisma as any).claim.findUnique({
       where: { claimId },
+      include: { item: true },
     });
 
     if (!claim) {
@@ -170,16 +193,119 @@ export class ClaimService {
     await messagingService.archiveConversation(claimId);
     // Messages will be archived and not visible to users
 
+    // Send notification to claimer that their claim was denied
+    try {
+      // Get finder's name for the notification
+      const finder = await prisma.user.findUnique({
+        where: { userId: finderId },
+        select: { name: true },
+      });
+      const finderName = finder?.name || "The finder";
+
+      // Create notification message
+      const notificationMessage = `Your claim for "${claim.item.title}" has been declined by ${finderName}.`;
+
+      // Send push notification (non-blocking - if it fails, claim denial still succeeds)
+      try {
+        await notificationService.sendPushNotification(
+          claim.claimerId,
+          "Claim Declined",
+          notificationMessage,
+          {
+            type: "claim_declined",
+            claimId: claim.claimId,
+            itemId: claim.item.itemId,
+            itemTitle: claim.item.title,
+          }
+        );
+      } catch (pushError) {
+        // Log error but don't fail claim denial if push fails (e.g., user has no tokens)
+        console.error("Failed to send push notification:", pushError);
+      }
+
+      // Store notification in database for in-app notifications tab
+      try {
+        await notificationService.createNotification(claim.claimerId, notificationMessage);
+      } catch (dbError) {
+        // Log error but don't fail claim denial if notification storage fails
+        console.error("Failed to store notification in database:", dbError);
+      }
+    } catch (error) {
+      // Log error but don't fail claim denial if notification process fails
+      console.error("Error sending denial notification:", error);
+    }
+
     return updatedClaim;
   }
 
+  // gets a claim by its ID
+  // Includes user emails for display after claim approval (REQ-3.4)
+  async getClaimById(claimId: string): Promise<any | null> {
+    const claim = await (prisma as any).claim.findUnique({
+      where: { claimId },
+      include: {
+        item: true, // Include item info
+      },
+    });
+
+    if (!claim) {
+      return null;
+    }
+
+    // Get user emails for display
+    const claimer = await prisma.user.findUnique({
+      where: { userId: claim.claimerId },
+      select: { email: true, name: true },
+    });
+    const finder = await prisma.user.findUnique({
+      where: { userId: claim.finderId },
+      select: { email: true, name: true },
+    });
+
+    return {
+      ...claim,
+      claimerEmail: claimer?.email || null,
+      finderEmail: finder?.email || null,
+      claimerName: claimer?.name || null,
+      finderName: finder?.name || null,
+    };
+  }
+
   // gets all claims made by a specific user
+  // Includes user emails for display after claim approval (REQ-3.4)
   async getClaimsByUser(userId: string): Promise<any[]> {
     const claims = await (prisma as any).claim.findMany({
       where: { claimerId: userId },
+      include: {
+        item: true, // Include item info
+      },
       orderBy: { createdAt: "desc" },
     });
-    return claims;
+
+    // Add user emails to each claim
+    const claimsWithEmails = await Promise.all(
+      claims.map(async (claim: any) => {
+        // Get claimer and finder emails
+        const claimer = await prisma.user.findUnique({
+          where: { userId: claim.claimerId },
+          select: { email: true, name: true },
+        });
+        const finder = await prisma.user.findUnique({
+          where: { userId: claim.finderId },
+          select: { email: true, name: true },
+        });
+
+        return {
+          ...claim,
+          claimerEmail: claimer?.email || null,
+          finderEmail: finder?.email || null,
+          claimerName: claimer?.name || null,
+          finderName: finder?.name || null,
+        };
+      })
+    );
+
+    return claimsWithEmails;
   }
 
   // marks item as handed off by the finder after they click "handed off" button

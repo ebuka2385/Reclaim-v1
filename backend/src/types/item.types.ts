@@ -1,3 +1,7 @@
+// All code written in this file was created by Ethan Hunt and is completely original in terms of its use. I used several resources to help aid my coding process as I have never used Prisma or TypeScript before.
+
+// All comments were created by AI after the code was written. The prompt was "Add comments to the item types file"
+
 export enum ItemStatus {
   LOST = "LOST",
   FOUND = "FOUND",

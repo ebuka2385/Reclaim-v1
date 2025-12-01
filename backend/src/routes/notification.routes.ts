@@ -1,3 +1,7 @@
+// All code written in this file was created by AI. the prompt was: "Create a file for the notification routes for the backend that follows the same format as the item.routes.ts file"
+
+// All comments were created by AI after the code was written. The prompt was "Add comments to the notification routes file"
+
 import { Router } from "express";
 import { notificationController } from "../controllers/notification.controller";
 

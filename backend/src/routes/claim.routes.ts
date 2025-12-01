@@ -1,14 +1,20 @@
+// All code written in this file was created by AI. the prompt was: "Create a file for the claim routes for the backend that follows the same format as the item.routes.ts file"
+
+// All comments were created by AI after the code was written. The prompt was "Add comments to the claim routes file"
+
 import { Router } from "express";
 import { claimController } from "../controllers/claim.controller";
 
 const router: Router = Router();
 
+// GET /claims/user/:userId - Get all claims by user (must come before /:id route)
+router.get("/user/:userId", (req, res) => claimController.getClaimsByUser(req, res));
+
+// GET /claims/:id - Get a claim by ID
+router.get("/:id", (req, res) => claimController.getClaimById(req, res));
 
 // PATCH /claims/:id/approve - Approve a claim
 router.patch("/:id/approve", (req, res) => claimController.approveClaim(req, res));
-
-// GET /claims/user/:userId - Get all claims by user
-router.get("/user/:userId", (req, res) => claimController.getClaimsByUser(req, res));
 
 // POST /claims - Create a new claim
 router.post("/", (req, res) => claimController.createClaim(req, res));

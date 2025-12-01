@@ -1,7 +1,28 @@
+// All code written in this file was created by AI. the prompt was: "Create a file for the claim controller for the backend that follows the same format as the item.controller.ts file"
+
+// All comments were created by AI after the code was written. The prompt was "Add comments to the claim controller file"
+
 import { Request, Response } from "express";
 import { claimService } from "../services/claim.service";
 
 export class ClaimController {
+  // GET /claims/:id - Get a claim by ID
+  async getClaimById(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const claim = await claimService.getClaimById(id);
+      
+      if (!claim) {
+        res.status(404).json({ error: "Claim not found" });
+        return;
+      }
+      
+      res.json(claim);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch claim" });
+    }
+  }
+
   // GET /claims/user/:userId - Get all claims by user
   async getClaimsByUser(req: Request, res: Response): Promise<void> {
     try {

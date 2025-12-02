@@ -21,12 +21,6 @@
     },
     "plugins": [
       [
-        "expo-location",
-        {
-          "locationAlwaysAndWhenInUsePermission": "Allow Reclaim to use your location to show items on the map."
-        }
-      ],
-      [
         "expo-notifications",
         {
           "icon": "./assets/icon.png",
@@ -35,8 +29,6 @@
         }
       ]
     ],
-    "unstable_plugins": true,
-    "unstable_metadata": {},
     "extra": {
       "eas": {
         "projectId": "7d040fd8-4f45-4c5e-982f-5517e8031e54"

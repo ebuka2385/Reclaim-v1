@@ -121,8 +121,8 @@ importers:
         specifier: ^7.0.9
         version: 7.0.9(expo@54.0.25(@babel/core@7.28.5)(react-native-webview@13.16.0(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
       expo-location:
-        specifier: 19.0.8-canary-20251127-587bc53
-        version: 19.0.8-canary-20251127-587bc53(expo@54.0.25(@babel/core@7.28.5)(react-native-webview@13.16.0(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))
+        specifier: 18.0.4
+        version: 18.0.4(expo@54.0.25(@babel/core@7.28.5)(react-native-webview@13.16.0(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))
       expo-notifications:
         specifier: ^0.28.19
         version: 0.28.19(expo@54.0.25(@babel/core@7.28.5)(react-native-webview@13.16.0(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))
@@ -2802,10 +2802,10 @@ packages:
       react: '*'
       react-native: '*'
 
-  expo-location@19.0.8-canary-20251127-587bc53:
-    resolution: {integrity: sha512-JGvqDYASfWFUBOhWaNxFsvOhD5mgl6xnU04NrRQAbay6I6CTfPHcl6noGiQbTkxo1Lyn9JkJKzUUj+0zDaNJWQ==}
+  expo-location@18.0.4:
+    resolution: {integrity: sha512-OrZTxRpfi4bCJxjW186wt3kfoe0FHwXceE6dXdbxvjxnwMP9cbKeqY6Y2M1bVwboq7PI2eV/e1rOaGq+F+fZyw==}
     peerDependencies:
-      expo: 55.0.0-canary-20251127-587bc53
+      expo: '*'
 
   expo-modules-autolinking@3.0.22:
     resolution: {integrity: sha512-Ej4SsZAnUUVFmbn6SoBso8K308mRKg8xgapdhP7v7IaSgfbexUoqxoiV31949HQQXuzmgvpkXCfp6Ex+mDW0EQ==}
@@ -9156,7 +9156,7 @@ snapshots:
       - expo
       - supports-color
 
-  expo-location@19.0.8-canary-20251127-587bc53(expo@54.0.25(@babel/core@7.28.5)(react-native-webview@13.16.0(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)):
+  expo-location@18.0.4(expo@54.0.25(@babel/core@7.28.5)(react-native-webview@13.16.0(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)):
     dependencies:
       expo: 54.0.25(@babel/core@7.28.5)(react-native-webview@13.16.0(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
 

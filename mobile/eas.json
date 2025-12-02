@@ -6,13 +6,19 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "node": "20.x.x"
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "node": "20.x.x"
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "node": "20.x.x",
+      "env": {
+        "NPM_CONFIG_PACKAGE_MANAGER": "npm"
+      }
     }
   },
   "submit": {

@@ -1,0 +1,22 @@
+export type Screen = 'login' | 'home' | 'report' | 'search' | 'map' | 'notifications' | 'myitems' | 'messages' | 'chat';
+
+export interface Item {
+  id: string;
+  title: string;
+  description: string;
+  status: 'LOST' | 'FOUND' | 'CLAIMED';
+  location?: string;
+  createdAt?: string;
+  userId?: string;
+}
+
+export interface ScreenProps {
+  onNavigate: (screen: Screen) => void;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+}
+

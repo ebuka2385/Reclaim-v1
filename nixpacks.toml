@@ -15,4 +15,4 @@ cmds = [
 ]
 
 [start]
-cmd = "pnpm --filter @reclaim/backend start"
+cmd = "corepack enable && corepack prepare pnpm@latest --activate && node backend/dist/index.js"

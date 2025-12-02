@@ -3,8 +3,7 @@ nixPkgs = ["nodejs_20"]
 
 [phases.install]
 cmds = [
-  "corepack enable",
-  "corepack prepare pnpm@latest --activate",
+  "npm install -g pnpm@latest",
   "pnpm install --no-frozen-lockfile"
 ]
 
@@ -15,4 +14,4 @@ cmds = [
 ]
 
 [start]
-cmd = "corepack enable && corepack prepare pnpm@latest --activate && node backend/dist/index.js"
+cmd = "cd backend && pnpm prisma migrate deploy && node dist/index.js"

@@ -14,4 +14,4 @@ cmds = [
 ]
 
 [start]
-cmd = "pnpm prisma migrate deploy && pnpm start"
+cmd = "npm install -g pnpm@latest && pnpm prisma migrate deploy && pnpm start"

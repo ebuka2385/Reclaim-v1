@@ -1,7 +1,7 @@
 import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from 'react-native';
 import { useState, useEffect, useRef } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { apiService } from '../services/api';
+import { apiService, getUserId } from '../services/api';
 import { Screen } from '../types';
 
 interface ChatScreenProps {
@@ -21,10 +21,12 @@ interface Claim {
   claimId: string;
   itemId: string;
   claimerId: string;
-  finderId: string;
   status: string;
-  handedOff: boolean;
+  handedOff?: boolean;
   item: {
+    itemId: string;
+    userId: string;
+    status: string;
     title: string;
     description: string;
   };
@@ -38,7 +40,6 @@ export default function ChatScreen({ threadId, claimId, onNavigate }: ChatScreen
   const [sending, setSending] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const flatListRef = useRef<FlatList>(null);
-  const DEFAULT_USER_ID = 'temp-user-id';
 
   useEffect(() => {
     loadData();
@@ -209,8 +210,14 @@ export default function ChatScreen({ threadId, claimId, onNavigate }: ChatScreen
     );
   };
 
-  const isFinder = claim?.finderId === DEFAULT_USER_ID;
-  const isClaimer = claim?.claimerId === DEFAULT_USER_ID;
+  const currentUserId = getUserId();
+  // Finder = person who HAS the item
+  // - If item is FOUND: item.userId has it → finder = item.userId
+  // - If item is LOST: item.userId lost it, claimer found it → finder = claimerId
+  const itemStatus = claim?.item?.status;
+  const finderId = itemStatus === 'FOUND' ? claim?.item?.userId : claim?.claimerId;
+  const isFinder = finderId === currentUserId;
+  const isClaimer = claim?.claimerId === currentUserId;
   // Database uses PENDING/APPROVED, code uses OPEN/ACCEPTED
   const canChat = claim?.status === 'OPEN' || claim?.status === 'PENDING' || 
                   claim?.status === 'ACCEPTED' || claim?.status === 'APPROVED';
@@ -296,7 +303,7 @@ export default function ChatScreen({ threadId, claimId, onNavigate }: ChatScreen
           data={messages}
           keyExtractor={(item) => item.messageId}
           renderItem={({ item }) => {
-            const isMyMessage = item.userId === DEFAULT_USER_ID;
+            const isMyMessage = item.userId === currentUserId;
             return (
               <View style={[styles.messageContainer, isMyMessage ? styles.myMessage : styles.theirMessage]}>
                 <Text style={[styles.messageText, isMyMessage && styles.myMessageText]}>

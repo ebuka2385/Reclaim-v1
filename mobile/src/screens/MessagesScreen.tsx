@@ -1,7 +1,7 @@
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, SafeAreaView, ActivityIndicator } from 'react-native';
 import { useState, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { apiService } from '../services/api';
+import { apiService, getUserId } from '../services/api';
 import { Screen } from '../types';
 
 interface MessagesScreenProps {
@@ -14,13 +14,13 @@ interface Conversation {
     claimId: string;
     item: {
       itemId: string;
+      userId: string;
       title: string;
       description: string;
     };
     status: string;
-    handedOff: boolean;
+    handedOff?: boolean;
     claimerId: string;
-    finderId: string;
   };
   lastMessage: {
     text: string;
@@ -64,7 +64,9 @@ export default function MessagesScreen({ onNavigate }: MessagesScreenProps) {
   };
 
   const renderConversation = ({ item }: { item: Conversation }) => {
-    const isClaimer = item.claim.claimerId === 'temp-user-id';
+    const currentUserId = getUserId();
+    const finderId = item.claim.item.userId;
+    const isClaimer = item.claim.claimerId === currentUserId;
     const otherPersonName = isClaimer ? 'Finder' : 'Claimer';
     
     return (

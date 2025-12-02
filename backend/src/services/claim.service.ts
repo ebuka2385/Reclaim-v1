@@ -17,7 +17,7 @@ export class ClaimService {
   // Claim starts as OPEN - notification sent to finder
   // Conversation is created when finder approves the claim
   async createClaim(itemId: string, ownerId: string): Promise<any> {
-    const item = await prisma.item.findUnique({ where: { itemId } });
+    const item = await (prisma as any).item.findUnique({ where: { itemId } });
     if (!item) {
       throw new Error("Item not found");
     }
@@ -44,7 +44,7 @@ export class ClaimService {
     // Send notification to finder about the new claim
     try {
       // Get claimer's name for the notification
-      const claimer = await prisma.user.findUnique({
+      const claimer = await (prisma as any).user.findUnique({
         where: { userId: ownerId },
         select: { name: true },
       });
@@ -73,7 +73,7 @@ export class ClaimService {
 
       // Store notification in database for in-app notifications tab
       try {
-        await prisma.notification.create({
+        await (prisma as any).notification.create({
           data: {
             userId: finderId,
             message: notificationMessage,
@@ -107,10 +107,15 @@ export class ClaimService {
     if (!claim) {
       throw new Error("Claim not found");
     }
-    if (claim.finderId != finderId) {
+    // Finder = person who has the item
+    // If FOUND: item.userId has it → finder = item.userId
+    // If LOST: claimer found it → finder = claimerId
+    const actualFinderId = claim.item.status === 'FOUND' ? claim.item.userId : claim.claimerId;
+    if (actualFinderId != finderId) {
       throw new Error("Only the finder can approve this claim");
     }
-    if (claim.status != ClaimStatus.OPEN) {
+    // Database uses PENDING, code uses OPEN
+    if (claim.status != ClaimStatus.OPEN && claim.status !== 'PENDING') {
       throw new Error("Claim is not open");
     }
     const updatedClaim = await (prisma as any).claim.update({
@@ -151,12 +156,12 @@ export class ClaimService {
     }
 
     // Get user emails for display after approval (REQ-3.4)
-    const claimer = await prisma.user.findUnique({
+    const claimer = await (prisma as any).user.findUnique({
       where: { userId: claim.claimerId },
       select: { email: true, name: true },
     });
-    const finder = await prisma.user.findUnique({
-      where: { userId: claim.finderId },
+    const finder = await (prisma as any).user.findUnique({
+      where: { userId: actualFinderId },
       select: { email: true, name: true },
     });
 
@@ -181,10 +186,13 @@ export class ClaimService {
     if (!claim) {
       throw new Error("Claim not found");
     }
-    if (claim.finderId != finderId) {
+    // Finder = person who has the item
+    const actualFinderId = claim.item.status === 'FOUND' ? claim.item.userId : claim.claimerId;
+    if (actualFinderId != finderId) {
       throw new Error("Only the finder can deny this claim");
     }
-    if (claim.status != ClaimStatus.OPEN) {
+    // Database uses PENDING, code uses OPEN
+    if (claim.status != ClaimStatus.OPEN && claim.status !== 'PENDING') {
       throw new Error("Claim is not open");
     }
 
@@ -200,7 +208,7 @@ export class ClaimService {
     // Send notification to claimer that their claim was denied
     try {
       // Get finder's name for the notification
-      const finder = await prisma.user.findUnique({
+      const finder = await (prisma as any).user.findUnique({
         where: { userId: finderId },
         select: { name: true },
       });
@@ -256,13 +264,16 @@ export class ClaimService {
       return null;
     }
 
+    // Get finderId from item (item.userId is the finder)
+    const finderId = claim.item.userId;
+    
     // Get user emails for display
-    const claimer = await prisma.user.findUnique({
+    const claimer = await (prisma as any).user.findUnique({
       where: { userId: claim.claimerId },
       select: { email: true, name: true },
     });
-    const finder = await prisma.user.findUnique({
-      where: { userId: claim.finderId },
+    const finder = await (prisma as any).user.findUnique({
+      where: { userId: finderId },
       select: { email: true, name: true },
     });
 
@@ -289,13 +300,16 @@ export class ClaimService {
     // Add user emails to each claim
     const claimsWithEmails = await Promise.all(
       claims.map(async (claim: any) => {
+        // Get finderId from item (item.userId is the finder)
+        const finderId = claim.item.userId;
+        
         // Get claimer and finder emails
-        const claimer = await prisma.user.findUnique({
+        const claimer = await (prisma as any).user.findUnique({
           where: { userId: claim.claimerId },
           select: { email: true, name: true },
         });
-        const finder = await prisma.user.findUnique({
-          where: { userId: claim.finderId },
+        const finder = await (prisma as any).user.findUnique({
+          where: { userId: finderId },
           select: { email: true, name: true },
         });
 
@@ -316,11 +330,14 @@ export class ClaimService {
   async markHandedOff(claimId: string, finderId: string): Promise<any> {
     const claim = await (prisma as any).claim.findUnique({
       where: { claimId },
+      include: { item: true },
     });
     if (!claim) {
       throw new Error("Claim not found");
     }
-    if (claim.finderId != finderId) {
+    // Finder = person who has the item
+    const actualFinderId = claim.item.status === 'FOUND' ? claim.item.userId : claim.claimerId;
+    if (actualFinderId != finderId) {
       throw new Error("Only the finder can mark item as handed off");
     }
     if (claim.status != ClaimStatus.ACCEPTED) {

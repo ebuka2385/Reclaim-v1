@@ -239,11 +239,11 @@ export class MessagingService {
         });
 
         // Get claimer and finder emails for display (REQ-3.4)
-        const claimer = await prisma.user.findUnique({
+        const claimer = await (prisma as any).user.findUnique({
           where: { userId: thread.claimerId },
           select: { email: true, name: true },
         });
-        const finder = await prisma.user.findUnique({
+        const finder = await (prisma as any).user.findUnique({
           where: { userId: thread.finderId },
           select: { email: true, name: true },
         });

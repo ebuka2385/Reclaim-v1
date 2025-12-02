@@ -1,17 +1,14 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "NodeNext",
-    "lib": [
-      "ES2022"
-    ],
-    "outDir": "./dist",
-    "strict": true,
+    "rootDir": "src",
+    "outDir": "dist",
+    "module": "commonjs",
+    "target": "es2020",
     "esModuleInterop": true,
     "skipLibCheck": true,
+    "strict": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "moduleResolution": "nodenext",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
@@ -21,13 +18,5 @@
       "node"
     ]
   },
-  "include": [
-    "src/**/*",
-    "tests/**/*",
-    "__mocks__/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+  "include": ["src"]
 }

@@ -9,9 +9,9 @@ cmds = [
 
 [phases.build]
 cmds = [
-  "pnpm --filter @reclaim/backend prisma generate",
-  "pnpm --filter @reclaim/backend build"
+  "pnpm prisma generate",
+  "pnpm build"
 ]
 
 [start]
-cmd = "pnpm --filter @reclaim/backend prisma migrate deploy && pnpm --filter @reclaim/backend start"
+cmd = "pnpm prisma migrate deploy && pnpm start"

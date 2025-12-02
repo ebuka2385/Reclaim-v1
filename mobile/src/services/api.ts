@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://172.20.10.4:3000';
+const API_BASE_URL = 'http://172.20.159.217:3000';
 const DEFAULT_USER_ID = 'temp-user-id'; // Default user for demo
 
 // Store current userId
@@ -35,6 +35,25 @@ class ApiService {
     const response = await fetch(`${API_BASE_URL}/items`);
     const data = await response.json();
     // Map itemId to id for consistency (backend uses itemId, frontend expects id)
+    if (data.items) {
+      data.items = data.items.map((item: any) => ({
+        ...item,
+        id: item.id || item.itemId,
+      }));
+    }
+    return data;
+  }
+
+  async getItemsByUser(userId: string) {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+    const response = await fetch(`${API_BASE_URL}/items/user/${userId}`);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Failed to fetch user items' }));
+      throw new Error(errorData.error || 'Failed to fetch user items');
+    }
+    const data = await response.json();
     if (data.items) {
       data.items = data.items.map((item: any) => ({
         ...item,

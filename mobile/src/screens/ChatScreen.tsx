@@ -211,7 +211,9 @@ export default function ChatScreen({ threadId, claimId, onNavigate }: ChatScreen
 
   const isFinder = claim?.finderId === DEFAULT_USER_ID;
   const isClaimer = claim?.claimerId === DEFAULT_USER_ID;
-  const canChat = claim?.status === 'ACCEPTED' || claim?.status === 'APPROVED';
+  // Database uses PENDING/APPROVED, code uses OPEN/ACCEPTED
+  const canChat = claim?.status === 'OPEN' || claim?.status === 'PENDING' || 
+                  claim?.status === 'ACCEPTED' || claim?.status === 'APPROVED';
 
   if (loading) {
     return (
@@ -310,7 +312,7 @@ export default function ChatScreen({ threadId, claimId, onNavigate }: ChatScreen
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>
-                {canChat ? 'Start the conversation...' : 'Waiting for claim approval...'}
+                Start the conversation...
               </Text>
             </View>
           }

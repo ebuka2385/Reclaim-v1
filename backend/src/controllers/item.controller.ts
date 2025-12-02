@@ -18,6 +18,25 @@ export class ItemController {
     }
   }
 
+  // GET /items/user/:userId - Get items by user
+  async getItemsByUser(req: Request, res: Response): Promise<void> {
+    try {
+      const { userId } = req.params;
+      if (!userId) {
+        res.status(400).json({ error: "Missing userId parameter" });
+        return;
+      }
+      const items = await itemService.getItemsByUser(userId);
+      res.json({ items });
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(500).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: "Failed to fetch user items" });
+      }
+    }
+  }
+
   // GET /items/filter - Get items with filter
   // Optional query parameters: status, userId, category, sortBy, sortOrder
   // Optional bounds parameters: north, south, east, west (for map bounds filtering)

@@ -2,10 +2,8 @@ import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Ale
 import { useState, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { Item, Screen } from '../types';
-import { apiService } from '../services/api';
+import { apiService, getUserId } from '../services/api';
 import EditItemScreen from './EditItemScreen';
-
-const DEFAULT_USER_ID = 'temp-user-id'; // Default user for demo
 
 interface MyItemsScreenProps {
   onNavigate?: (screen: Screen) => void;
@@ -17,15 +15,15 @@ export default function MyItemsScreen({ onNavigate }: MyItemsScreenProps = {} as
 
   const loadMyItems = async () => {
     try {
-      const response = await apiService.getAllItems();
-      // Filter by current user
-      const userItems = (response.items || []).filter((item: Item) => 
-        item.userId === DEFAULT_USER_ID
-      );
-      setMyItems(userItems);
-    } catch (error) {
-      console.error('Failed to load items:', error);
-      Alert.alert('Error', 'Failed to load items');
+      const userId = getUserId();
+      if (!userId || userId === 'temp-user-id') {
+        setMyItems([]);
+        return;
+      }
+      const response = await apiService.getItemsByUser(userId);
+      setMyItems(response.items || []);
+    } catch (error: any) {
+      setMyItems([]);
     }
   };
 

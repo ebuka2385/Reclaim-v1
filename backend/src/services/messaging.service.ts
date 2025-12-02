@@ -12,17 +12,21 @@ export class MessagingService {
   // Called when claim is approved (status ACCEPTED)
   // Returns threadId - creates thread if it doesn't exist, returns existing if it does
   async ensureThread(claimId: string): Promise<string> {
-    // First verify the claim exists and is ACCEPTED
+    // Verify the claim exists and is OPEN or ACCEPTED
     const claim = await (prisma as any).claim.findUnique({
       where: { claimId },
+      include: { item: true },
     });
 
     if (!claim) {
       throw new Error("Claim not found");
     }
 
-    if (claim.status != ClaimStatus.ACCEPTED) {
-      throw new Error("Thread can only be created for accepted claims");
+    // Database uses PENDING/APPROVED, code uses OPEN/ACCEPTED
+    const isOpenOrAccepted = claim.status === 'PENDING' || claim.status === 'APPROVED' || 
+                              claim.status === ClaimStatus.OPEN || claim.status === ClaimStatus.ACCEPTED;
+    if (!isOpenOrAccepted) {
+      throw new Error("Thread can only be created for open or accepted claims");
     }
 
     // Check if thread already exists for this claim
@@ -34,20 +38,15 @@ export class MessagingService {
       return existingThread.threadId;
     }
 
+    // Get finderId from item (item.userId is the finder)
+    const finderId = claim.item.userId;
+
     // Create new thread
-    // NOTE: Requires Thread model in Prisma schema with fields:
-    // threadId (String @id @default(cuid()))
-    // claimId (String, FK to Claim, unique)
-    // claimerId (String, FK to User)
-    // finderId (String, FK to User)
-    // createdAt (DateTime @default(now()))
-    // archived (Boolean @default(false))
-    // hidden (Boolean @default(false))
     const thread = await (prisma as any).thread.create({
       data: {
         claimId: claimId,
         claimerId: claim.claimerId,
-        finderId: claim.finderId,
+        finderId: finderId,
         archived: false,
         hidden: false,
       },
@@ -154,13 +153,16 @@ export class MessagingService {
       throw new Error("Claim not found");
     }
 
-    // Check claim status - must be ACCEPTED (not DECLINED)
-    if (claim.status == ClaimStatus.DECLINED) {
+    // Check claim status - allow OPEN/PENDING or ACCEPTED/APPROVED (not DECLINED/REJECTED)
+    // Database uses PENDING/APPROVED/REJECTED, code uses OPEN/ACCEPTED/DECLINED
+    if (claim.status == ClaimStatus.DECLINED || claim.status === 'REJECTED') {
       throw new Error("Thread is not accessible - claim was declined");
     }
 
-    if (claim.status != ClaimStatus.ACCEPTED) {
-      throw new Error("Thread is not accessible - claim is not accepted");
+    const isOpenOrAccepted = claim.status === 'PENDING' || claim.status === 'APPROVED' || 
+                              claim.status === ClaimStatus.OPEN || claim.status === ClaimStatus.ACCEPTED;
+    if (!isOpenOrAccepted) {
+      throw new Error("Thread is not accessible - claim is not open or accepted");
     }
   }
 

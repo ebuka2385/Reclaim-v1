@@ -37,9 +37,7 @@ export class ClaimService {
       data: {
         itemId: itemId,
         claimerId: ownerId,
-        finderId: finderId,
-        status: ClaimStatus.OPEN,
-        handedOff: false,
+        status: 'PENDING', // Database uses PENDING, code uses OPEN
       },
     });
 
@@ -90,7 +88,13 @@ export class ClaimService {
       console.error("Error sending notification:", error);
     }
 
-    return claim;
+    // Create thread immediately so users can message right away
+    const threadId = await messagingService.ensureThread(claim.claimId);
+
+    return {
+      ...claim,
+      threadId,
+    };
   }
 
   // approves a claim when the finder decides the claimer is the owner

@@ -256,9 +256,11 @@ export default function SearchScreen({ onNavigate }: SearchScreenProps = {}) {
                           e.stopPropagation();
                           try {
                             const claim = await apiService.createClaim(item.itemId);
-                            Alert.alert('Claim Created', 'Your message request has been sent!', [
-                              { text: 'OK', onPress: () => onNavigate('messages') },
-                            ]);
+                            if (claim.threadId && claim.claimId) {
+                              onNavigate('chat', { threadId: claim.threadId, claimId: claim.claimId });
+                            } else {
+                              onNavigate('messages');
+                            }
                           } catch (error: any) {
                             Alert.alert('Error', error.message || 'Failed to create claim');
                           }

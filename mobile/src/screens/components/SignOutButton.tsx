@@ -1,9 +1,15 @@
 import React from 'react';
 import { useClerk } from '@clerk/clerk-expo';
-import { TouchableOpacity, Text, StyleSheet, Alert } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, Alert, ViewStyle, TextStyle } from 'react-native';
 import { clearUserId } from '../../services/api';
 
-export const SignOutButton = () => {
+interface SignOutButtonProps {
+  compact?: boolean;
+  buttonStyle?: ViewStyle;
+  textStyle?: TextStyle;
+}
+
+export const SignOutButton = ({ compact = false, buttonStyle, textStyle }: SignOutButtonProps = {}) => {
   const { signOut } = useClerk();
 
   const handleSignOut = async () => {
@@ -16,8 +22,11 @@ export const SignOutButton = () => {
   };
 
   return (
-    <TouchableOpacity style={styles.button} onPress={handleSignOut}>
-      <Text style={styles.buttonText}>Sign out</Text>
+    <TouchableOpacity 
+      style={[styles.button, compact && styles.buttonCompact, buttonStyle]} 
+      onPress={handleSignOut}
+    >
+      <Text style={[styles.buttonText, compact && styles.buttonTextCompact, textStyle]}>Sign out</Text>
     </TouchableOpacity>
   );
 };
@@ -30,10 +39,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 16,
   },
+  buttonCompact: {
+    padding: 8,
+    marginTop: 0,
+    minWidth: 80,
+  },
   buttonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  buttonTextCompact: {
+    fontSize: 14,
   },
 });
 

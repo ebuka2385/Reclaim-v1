@@ -35,6 +35,8 @@
         }
       ]
     ],
+    "unstable_plugins": true,
+    "unstable_metadata": {},
     "extra": {
       "eas": {
         "projectId": "7d040fd8-4f45-4c5e-982f-5517e8031e54"

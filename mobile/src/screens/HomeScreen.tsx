@@ -1,6 +1,7 @@
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Screen } from '../types';
+import { SignOutButton } from './components/SignOutButton';
 
 interface HomeScreenProps {
   onNavigate: (screen: Screen) => void;
@@ -11,6 +12,9 @@ export default function HomeScreen({ onNavigate }: HomeScreenProps) {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Home</Text>
+        <View style={styles.headerActions}>
+          <SignOutButton compact />
+        </View>
       </View>
       
       <View style={styles.content}>
@@ -58,6 +62,13 @@ const styles = StyleSheet.create({
   header: {
     padding: 20,
     backgroundColor: '#003071',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerActions: {
+    flex: 1,
+    alignItems: 'flex-end',
   },
   title: {
     fontSize: 28,

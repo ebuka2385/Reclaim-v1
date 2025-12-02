@@ -14,4 +14,4 @@ cmds = [
 ]
 
 [start]
-cmd = "cd backend && pnpm prisma migrate deploy && node dist/index.js"
+cmd = "pnpm --filter @reclaim/backend prisma migrate deploy && pnpm --filter @reclaim/backend start"

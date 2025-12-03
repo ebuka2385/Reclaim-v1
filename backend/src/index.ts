@@ -23,17 +23,23 @@ if (!process.env.DATABASE_URL) {
 
 const app = express();
 
-// Test database connection on startup
-prisma.$connect()
-  .then(() => console.log("✅ Database connected"))
-  .catch((err) => {
-    console.error("❌ Database connection failed:", err);
-    process.exit(1);
-  });
-
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// CRITICAL: Health check FIRST, before any other routes
+app.get("/", (req, res) => {
+  res.status(200).json({ status: "ok", message: "Server is running" });
+});
+
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok", message: "Server is healthy" });
+});
+
+// Connect to database (non-blocking)
+prisma.$connect()
+  .then(() => console.log("✅ Database connected"))
+  .catch((err) => console.error("⚠️  Database connection warning:", err));
 
 // Routes
 app.use("/", routes);
@@ -48,11 +54,21 @@ const PORT = parseInt(process.env.PORT || "3000", 10);
 
 const server = app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📍 Health check available at http://localhost:${PORT}/health`);
 });
 
 // Graceful shutdown
 process.on("SIGTERM", async () => {
   console.log("⚠️  SIGTERM received, shutting down gracefully...");
+  server.close(async () => {
+    await prisma.$disconnect();
+    console.log("✅ Server closed");
+    process.exit(0);
+  });
+});
+
+process.on("SIGINT", async () => {
+  console.log("⚠️  SIGINT received, shutting down gracefully...");
   server.close(async () => {
     await prisma.$disconnect();
     console.log("✅ Server closed");

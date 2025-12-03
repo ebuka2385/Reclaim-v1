@@ -13,6 +13,7 @@ export default ({ config }: ConfigContext) => {
       version: "1.0.0",
       orientation: "portrait",
       userInterfaceStyle: "light",
+      icon: "./assets/icon.png",
 
       // CRITICAL: monorepo compatibility
       projectRoot,

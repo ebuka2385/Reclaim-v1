@@ -3,14 +3,10 @@ nixPkgs = ["nodejs_20"]
 
 [phases.install]
 cmds = [
-  # Install pnpm
   "curl -fsSL https://get.pnpm.io/install.sh | sh -",
-  # Add pnpm to the PATH
   "export PNPM_HOME=$HOME/.local/share/pnpm",
   "export PATH=$PNPM_HOME:$PATH",
-  # HARD LINK pnpm into /usr/local/bin so Railway sees it everywhere
   "ln -sf $PNPM_HOME/pnpm /usr/local/bin/pnpm",
-  # Install dependencies
   "pnpm install --no-frozen-lockfile"
 ]
 
@@ -20,7 +16,5 @@ cmds = [
   "pnpm run build"
 ]
 
-[start]
-# ALSO link pnpm again inside the runtime container
-cmd = "ln -sf $HOME/.local/share/pnpm/pnpm /usr/local/bin/pnpm && pnpm prisma migrate deploy && pnpm start"
-
+[deploy]
+startCommand = "pnpm prisma migrate deploy && pnpm start"

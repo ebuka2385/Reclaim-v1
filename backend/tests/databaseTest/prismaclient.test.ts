@@ -455,4 +455,246 @@ describe('Database Tests - Prisma Client Validation', () => {
       expect(prisma.$disconnect).toHaveBeenCalled();
     });
   });
+
+  describe('Schema Functionality Tests', () => {
+    describe('FT-1: Item Category Functionality', () => {
+      it('should create and filter items by category', async () => {
+        const electronicsItem = {
+          itemId: 'item123',
+          title: 'Lost iPhone',
+          description: 'Black iPhone 14 Pro',
+          status: 'LOST',
+          category: 'Electronics',
+          userId: 'user123',
+          createdAt: new Date(),
+        };
+
+        const clothingItem = {
+          itemId: 'item456',
+          title: 'Lost Jacket',
+          description: 'Blue denim jacket',
+          status: 'LOST',
+          category: 'Clothing',
+          userId: 'user456',
+          createdAt: new Date(),
+        };
+
+        // Test creating items with categories
+        (prisma.item.create as jest.Mock).mockResolvedValueOnce(electronicsItem);
+        (prisma.item.create as jest.Mock).mockResolvedValueOnce(clothingItem);
+
+        const electronics = await prisma.item.create({
+          data: {
+            title: 'Lost iPhone',
+            description: 'Black iPhone 14 Pro',
+            category: 'Electronics',
+            userId: 'user123',
+          },
+        });
+
+        const clothing = await prisma.item.create({
+          data: {
+            title: 'Lost Jacket',
+            description: 'Blue denim jacket',
+            category: 'Clothing',
+            userId: 'user456',
+          },
+        });
+
+        expect(electronics.category).toBe('Electronics');
+        expect(clothing.category).toBe('Clothing');
+
+        // Test filtering by category
+        (prisma.item.findMany as jest.Mock).mockResolvedValue([electronicsItem]);
+
+        const electronicsItems = await prisma.item.findMany({
+          where: { category: 'Electronics' },
+        });
+
+        expect(electronicsItems).toHaveLength(1);
+        expect(electronicsItems[0].category).toBe('Electronics');
+      });
+    });
+
+    describe('FT-2: Claims with Finder Relationship', () => {
+      it('should create claims with finder and claimer relationships', async () => {
+        const mockClaim = {
+          claimId: 'claim123',
+          itemId: 'item123',
+          claimerId: 'claimer456',
+          finderId: 'finder789',
+          status: 'OPEN',
+          handedOff: false,
+          description: 'This is my lost phone',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        // Test creating claim with finder relationship
+        (prisma.claim.create as jest.Mock).mockResolvedValue(mockClaim);
+
+        const claim = await prisma.claim.create({
+          data: {
+            itemId: 'item123',
+            claimerId: 'claimer456',
+            finderId: 'finder789',
+            description: 'This is my lost phone',
+          },
+        });
+
+        expect(claim.claimerId).toBe('claimer456');
+        expect(claim.finderId).toBe('finder789');
+        expect(claim.handedOff).toBe(false);
+        expect(claim.status).toBe('OPEN');
+      });
+    });
+
+    describe('FT-3: Handoff Status Tracking', () => {
+      it('should track handoff status in claims', async () => {
+        const initialClaim = {
+          claimId: 'claim123',
+          itemId: 'item123',
+          claimerId: 'claimer456',
+          finderId: 'finder789',
+          status: 'OPEN',
+          handedOff: false,
+          createdAt: new Date(),
+        };
+
+        const handedOffClaim = {
+          ...initialClaim,
+          handedOff: true,
+          status: 'ACCEPTED',
+          updatedAt: new Date(),
+        };
+
+        // Test initial claim creation
+        (prisma.claim.create as jest.Mock).mockResolvedValue(initialClaim);
+
+        const claim = await prisma.claim.create({
+          data: {
+            itemId: 'item123',
+            claimerId: 'claimer456',
+            finderId: 'finder789',
+          },
+        });
+
+        expect(claim.handedOff).toBe(false);
+
+        // Test updating handoff status
+        (prisma.claim.update as jest.Mock).mockResolvedValue(handedOffClaim);
+
+        const updatedClaim = await prisma.claim.update({
+          where: { claimId: 'claim123' },
+          data: { handedOff: true, status: 'ACCEPTED' },
+        });
+
+        expect(updatedClaim.handedOff).toBe(true);
+        expect(updatedClaim.status).toBe('ACCEPTED');
+      });
+    });
+
+    describe('FT-4: Device Token Management', () => {
+      it('should manage device tokens for push notifications', async () => {
+        const mockDeviceToken = {
+          tokenId: 'token123',
+          userId: 'user123',
+          token: 'device-token-abc123',
+          platform: 'ios',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        // Test creating device token
+        (prisma.deviceToken.create as jest.Mock).mockResolvedValue(mockDeviceToken);
+
+        const deviceToken = await prisma.deviceToken.create({
+          data: {
+            userId: 'user123',
+            token: 'device-token-abc123',
+            platform: 'ios',
+          },
+        });
+
+        expect(deviceToken.userId).toBe('user123');
+        expect(deviceToken.token).toBe('device-token-abc123');
+        expect(deviceToken.platform).toBe('ios');
+
+        // Test finding tokens by user
+        (prisma.deviceToken.findMany as jest.Mock).mockResolvedValue([mockDeviceToken]);
+
+        const userTokens = await prisma.deviceToken.findMany({
+          where: { userId: 'user123' },
+        });
+
+        expect(userTokens).toHaveLength(1);
+        expect(userTokens[0].userId).toBe('user123');
+      });
+    });
+
+    describe('FT-5: Complete Messaging System', () => {
+      it('should create threads and messages for claims', async () => {
+        const mockThread = {
+          threadId: 'thread123',
+          claimId: 'claim123',
+          claimerId: 'claimer456',
+          finderId: 'finder789',
+          archived: false,
+          hidden: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        const mockMessage = {
+          messageId: 'message123',
+          threadId: 'thread123',
+          userId: 'claimer456',
+          text: 'Hi, I think this is my phone. Can we meet tomorrow?',
+          read: false,
+          createdAt: new Date(),
+        };
+
+        // Test creating thread
+        (prisma.thread.create as jest.Mock).mockResolvedValue(mockThread);
+
+        const thread = await prisma.thread.create({
+          data: {
+            claimId: 'claim123',
+            claimerId: 'claimer456',
+            finderId: 'finder789',
+          },
+        });
+
+        expect(thread.claimerId).toBe('claimer456');
+        expect(thread.finderId).toBe('finder789');
+        expect(thread.archived).toBe(false);
+
+        // Test creating message in thread
+        (prisma.message.create as jest.Mock).mockResolvedValue(mockMessage);
+
+        const message = await prisma.message.create({
+          data: {
+            threadId: 'thread123',
+            userId: 'claimer456',
+            text: 'Hi, I think this is my phone. Can we meet tomorrow?',
+          },
+        });
+
+        expect(message.threadId).toBe('thread123');
+        expect(message.userId).toBe('claimer456');
+        expect(message.read).toBe(false);
+
+        // Test getting messages for thread
+        (prisma.message.findMany as jest.Mock).mockResolvedValue([mockMessage]);
+
+        const threadMessages = await prisma.message.findMany({
+          where: { threadId: 'thread123' },
+          orderBy: { createdAt: 'asc' },
+        });
+
+        expect(threadMessages).toHaveLength(1);
+        expect(threadMessages[0].text).toContain('Hi, I think this is my phone');
+      });
+    });
+  });
 });

@@ -17,4 +17,4 @@ cmds = [
 ]
 
 [deploy]
-startCommand = "pnpm prisma migrate deploy && pnpm start"
+startCommand = "npx prisma migrate deploy && node dist/index.js"

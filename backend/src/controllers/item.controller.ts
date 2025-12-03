@@ -246,7 +246,7 @@ export class ItemController {
         bounds = { north, south, east, west };
       }
       
-      const pins = await itemService.getMapPins(bounds);
+      const pins = await itemService.getMapPins();
       res.json({ pins });
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch map pins' });

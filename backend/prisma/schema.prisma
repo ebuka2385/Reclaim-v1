@@ -6,18 +6,7 @@
 //
 // ALL ITEMS BELOW ARE REQUIRED - Must be completed before app is finished
 //
-// 2. Claim Model MISSING FIELDS (Line ~101-119)
-//    - Missing: finderId (String) - The user who found/reported the item
-//    - Missing: handedOff (Boolean @default(false)) - Whether item has been physically handed off
-//    - ACTION: Add these fields to Claim model (see TODO comments in model)
-//    - IMPACT: markHandedOff() and confirmReceipt() methods will fail without these fields
-//    - STATUS: REQUIRED
 //
-// 3. Category Field in Item Model (Line ~61-78)
-//    - Missing: category field in Item model
-//    - ACTION: Add category field (see TODO comment in Item model)
-//    - IMPACT: Required for REQ-1.2 (category selection) and REQ-4.2 (category filtering)
-//    - STATUS: REQUIRED
 //
 // After making ALL changes:
 //   1. Create a new migration: npx prisma migrate dev --name complete_schema_updates
@@ -59,13 +48,11 @@ model Item {
   claims      Claim[]
   latitude    Float?
   longitude   Float?
-  // TODO: ADD REQUIRED FIELD - category (String?) - Category for the item (e.g., "Electronics", "Clothing", "Books", etc.)
-  // This is required for REQ-1.2 (category selection) and REQ-4.2 (category filtering)
-  // category   String?
+  category    String?
 
   @@index([userId])
   @@index([status])
-  // TODO: Add index on category after field is added: @@index([category])
+  @@index([category])
 }
 
 model Notification {
@@ -93,7 +80,7 @@ model Claim {
   claimId   String @id @default(cuid())
   itemId    String
   claimerId String
-  finderId  String
+  finderId  String 
   handedOff Boolean   @default(false)
   status    ClaimStatus @default(OPEN)
   description String? 

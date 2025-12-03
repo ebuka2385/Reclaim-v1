@@ -1,35 +1,56 @@
-import { ExpoConfig, ConfigContext } from 'expo/config';
+import { ConfigContext, ExpoConfig } from "expo/config";
 
-export default ({ config }: ConfigContext): ExpoConfig => {
+// Explicit project root reference for monorepos
+const projectRoot =
+  typeof __dirname !== "undefined" ? __dirname : process.cwd();
+
+export default ({ config }: ConfigContext) => {
   return {
     ...config,
     expo: {
-      name: 'Reclaim',
-      slug: 'reclaim',
-      version: '1.0.0',
-      orientation: 'portrait',
-      userInterfaceStyle: 'light',
+      name: "Reclaim",
+      slug: "reclaim",
+      version: "1.0.0",
+      orientation: "portrait",
+      userInterfaceStyle: "light",
+
+      // CRITICAL: monorepo compatibility
+      projectRoot,
+
       ios: {
         supportsTablet: true,
-        bundleIdentifier: 'app.reclaim.mobile',
+        bundleIdentifier: "app.reclaim.mobile",
         infoPlist: {
           ITSAppUsesNonExemptEncryption: false,
         },
       },
+
       android: {
-        package: 'app.reclaim.mobile',
+        package: "app.reclaim.mobile",
         permissions: [
-          'android.permission.ACCESS_COARSE_LOCATION',
-          'android.permission.ACCESS_FINE_LOCATION',
+          "android.permission.ACCESS_COARSE_LOCATION",
+          "android.permission.ACCESS_FINE_LOCATION",
         ],
       },
-      plugins: [], // do NOT add expo-location here
+
+      plugins: [
+        [
+          "expo-notifications",
+          {
+            icon: "./assets/icon.png",
+            color: "#003071",
+            sounds: [],
+          },
+        ],
+      ],
+
       extra: {
         eas: {
-          projectId: '7d040fd8-4f45-4c5e-982f-5517e8031e54',
+          projectId: "7d040fd8-4f45-4c5e-982f-5517e8031e54",
         },
       },
-      owner: 'ethanlma',
+
+      owner: "ethanlma",
     },
   };
 };

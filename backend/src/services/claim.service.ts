@@ -22,19 +22,13 @@ export class ClaimService {
     if (finderId === ownerId) {
       throw new Error("Cannot claim your own item");
     }
-    // NOTE: Requires Claim model in Prisma schema with fields:
-    // claimId (String @id @default(cuid()))
-    // itemId (String, FK to Item)
-    // claimerId (String, FK to User)
-    // finderId (String, FK to User)
-    // status (ClaimStatus @default(OPEN))
-    // handedOff (Boolean @default(false))
-    // createdAt (DateTime @default(now()))
+
     const claim = await (prisma as any).claim.create({
       data: {
         itemId: itemId,
         claimerId: ownerId,
-        status: 'PENDING', // Database uses PENDING, code uses OPEN
+        finderId: finderId,
+        status: 'OPEN',
       },
     });
 
@@ -86,12 +80,16 @@ export class ClaimService {
     }
 
     // Create thread immediately so users can message right away
-    const threadId = await messagingService.ensureThread(claim.claimId);
-
-    return {
-      ...claim,
-      threadId,
-    };
+    try {
+      const threadId = await messagingService.ensureThread(claim.claimId);
+      return {
+        ...claim,
+        threadId,
+      };
+    } catch (threadError) {
+      // Return claim even if thread creation fails
+      return claim;
+    }
   }
 
   // approves a claim when the finder decides the claimer is the owner
@@ -111,8 +109,7 @@ export class ClaimService {
     if (actualFinderId != finderId) {
       throw new Error("Only the finder can approve this claim");
     }
-    // Database uses PENDING, code uses OPEN
-    if (claim.status != ClaimStatus.OPEN && claim.status !== 'PENDING') {
+    if (claim.status !== ClaimStatus.OPEN) {
       throw new Error("Claim is not open");
     }
     const updatedClaim = await (prisma as any).claim.update({
@@ -188,8 +185,7 @@ export class ClaimService {
     if (actualFinderId != finderId) {
       throw new Error("Only the finder can deny this claim");
     }
-    // Database uses PENDING, code uses OPEN
-    if (claim.status != ClaimStatus.OPEN && claim.status !== 'PENDING') {
+    if (claim.status !== ClaimStatus.OPEN) {
       throw new Error("Claim is not open");
     }
 

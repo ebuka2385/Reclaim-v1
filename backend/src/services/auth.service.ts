@@ -3,10 +3,8 @@
 // All comments were created by AI after the code was written. The prompt was "Add comments to the authorization service file"
 
 import { OAuth2Client } from "google-auth-library";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/prisma";
 import { LoginResult } from "../types/auth.types";
-
-const prisma = new PrismaClient();
 
 // Initialize Google OAuth2 client
 // Note: Will be undefined if GOOGLE_CLIENT_ID env var is not set, but will fail gracefully in verifyGoogleToken

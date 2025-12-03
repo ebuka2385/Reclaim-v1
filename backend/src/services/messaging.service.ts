@@ -2,10 +2,8 @@
 
 // All comments were created by AI after the code was written. The prompt was "Add comments to the messaging service file"
 
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/prisma";
 import { ClaimStatus } from "../types/claim.types";
-
-const prisma = new PrismaClient();
 
 export class MessagingService {
   // Creates or ensures a thread exists for a claim

@@ -2,13 +2,12 @@
 
 // All comments were created by AI after the code was written. The prompt was "Add comments to the item service file"
 
-import { PrismaClient, Prisma, Item as DataItem, ItemStatus as PrismaItemStatus, Archive as DataArchive} from "@prisma/client";
+import { Prisma, Item as DataItem, ItemStatus as PrismaItemStatus, Archive as DataArchive} from "@prisma/client";
+import { prisma } from "../lib/prisma";
 
 import type { CreateItemDto, UpdateItemDto, ItemFilter, MapPin, MapBounds} from "../types/item.types";
 import { ItemStatus as DtoItemStatus } from "../types/item.types";
 import { notificationService } from "./notification.service";
-
-const prisma = new PrismaClient();
 
 export class ItemService {
   async getAllItems(): Promise<DataItem[]> {

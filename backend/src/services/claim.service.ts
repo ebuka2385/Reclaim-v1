@@ -2,15 +2,12 @@
 
 // All comments were created by AI after the code was written. The prompt was "Add comments to the claim service file"
 
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/prisma";
 import { itemService } from "./item.service";
 import { messagingService } from "./messaging.service";
 import { notificationService } from "./notification.service";
 import { ItemStatus } from "../types/item.types";
 import { ClaimStatus } from "../types/claim.types";
-
-
-const prisma = new PrismaClient();
 
 export class ClaimService {
   // creates a claim for an item when user clicks message button

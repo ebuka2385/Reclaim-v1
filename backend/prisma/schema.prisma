@@ -6,25 +6,7 @@
 //
 // ALL ITEMS BELOW ARE REQUIRED - Must be completed before app is finished
 //
-// 1. ClaimStatus ENUM MISMATCH (Line ~161-176)
-//    - Current schema uses: PENDING, APPROVED, REJECTED, VERIFIED
-//    - Backend code expects: OPEN, ACCEPTED, DECLINED
-//    - ACTION: Replace enum values with: OPEN, ACCEPTED, DECLINED
-//    - IMPACT: Breaks all claim-related functionality until fixed
-//    - STATUS: REQUIRED
 //
-// 2. Claim Model MISSING FIELDS (Line ~101-119)
-//    - Missing: finderId (String) - The user who found/reported the item
-//    - Missing: handedOff (Boolean @default(false)) - Whether item has been physically handed off
-//    - ACTION: Add these fields to Claim model (see TODO comments in model)
-//    - IMPACT: markHandedOff() and confirmReceipt() methods will fail without these fields
-//    - STATUS: REQUIRED
-//
-// 3. Category Field in Item Model (Line ~61-78)
-//    - Missing: category field in Item model
-//    - ACTION: Add category field (see TODO comment in Item model)
-//    - IMPACT: Required for REQ-1.2 (category selection) and REQ-4.2 (category filtering)
-//    - STATUS: REQUIRED
 //
 // After making ALL changes:
 //   1. Create a new migration: npx prisma migrate dev --name complete_schema_updates
@@ -66,13 +48,11 @@ model Item {
   claims      Claim[]
   latitude    Float?
   longitude   Float?
-  // TODO: ADD REQUIRED FIELD - category (String?) - Category for the item (e.g., "Electronics", "Clothing", "Books", etc.)
-  // This is required for REQ-1.2 (category selection) and REQ-4.2 (category filtering)
-  // category   String?
+  category    String?
 
   @@index([userId])
   @@index([status])
-  // TODO: Add index on category after field is added: @@index([category])
+  @@index([category])
 }
 
 model Notification {
@@ -100,13 +80,9 @@ model Claim {
   claimId   String @id @default(cuid())
   itemId    String
   claimerId String
-  // TODO: ADD REQUIRED FIELD - finderId (String) - The user who found/reported the item
-  // This field is required - backend code expects it for claim operations
-  // finderId String
-  // TODO: ADD REQUIRED FIELD - handedOff (Boolean @default(false)) - Whether item has been physically handed off
-  // This field is required - backend code uses it in markHandedOff() and confirmReceipt() methods
-  // handedOff Boolean @default(false)
-  status    ClaimStatus @default(PENDING) // TODO: Change default to OPEN after fixing enum to use OPEN/ACCEPTED/DECLINED
+  finderId  String 
+  handedOff Boolean   @default(false)
+  status    ClaimStatus @default(OPEN)
   description String? 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt 
@@ -118,7 +94,7 @@ model Claim {
   @@index([itemId])
   @@index([claimerId])
   @@index([status])
-  // TODO: Add index on finderId after field is added: @@index([finderId])
+  @@index([finderId])
 }
 
 model Thread {
@@ -162,21 +138,9 @@ enum ItemStatus {
 }
 
 enum ClaimStatus {
-  // TODO: REQUIRED FIX - Update enum values to match backend code expectations
-  // Current values (WRONG): PENDING, APPROVED, REJECTED, VERIFIED
-  // Required values (CORRECT): OPEN, ACCEPTED, DECLINED
-  // 
-  // ACTION: Replace the enum values below with:
-  //   OPEN      // Initial status when claim is created
-  //   ACCEPTED  // When finder approves the claim
-  //   DECLINED  // When finder denies the claim
-  //
-  // Remove these: PENDING, APPROVED, REJECTED, VERIFIED
-  // This is REQUIRED - backend code uses OPEN/ACCEPTED/DECLINED throughout
-  PENDING
-  APPROVED
-  REJECTED
-  VERIFIED
+  OPEN 
+  ACCEPTED
+  DECLINED
 }
 
 model DeviceToken {

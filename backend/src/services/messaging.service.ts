@@ -20,9 +20,7 @@ export class MessagingService {
       throw new Error("Claim not found");
     }
 
-    // Database uses PENDING/APPROVED, code uses OPEN/ACCEPTED
-    const isOpenOrAccepted = claim.status === 'PENDING' || claim.status === 'APPROVED' || 
-                              claim.status === ClaimStatus.OPEN || claim.status === ClaimStatus.ACCEPTED;
+    const isOpenOrAccepted = claim.status === ClaimStatus.OPEN || claim.status === ClaimStatus.ACCEPTED;
     if (!isOpenOrAccepted) {
       throw new Error("Thread can only be created for open or accepted claims");
     }
@@ -151,14 +149,12 @@ export class MessagingService {
       throw new Error("Claim not found");
     }
 
-    // Check claim status - allow OPEN/PENDING or ACCEPTED/APPROVED (not DECLINED/REJECTED)
-    // Database uses PENDING/APPROVED/REJECTED, code uses OPEN/ACCEPTED/DECLINED
-    if (claim.status == ClaimStatus.DECLINED || claim.status === 'REJECTED') {
+    // Check claim status - allow OPEN or ACCEPTED (not DECLINED)
+    if (claim.status === ClaimStatus.DECLINED) {
       throw new Error("Thread is not accessible - claim was declined");
     }
 
-    const isOpenOrAccepted = claim.status === 'PENDING' || claim.status === 'APPROVED' || 
-                              claim.status === ClaimStatus.OPEN || claim.status === ClaimStatus.ACCEPTED;
+    const isOpenOrAccepted = claim.status === ClaimStatus.OPEN || claim.status === ClaimStatus.ACCEPTED;
     if (!isOpenOrAccepted) {
       throw new Error("Thread is not accessible - claim is not open or accepted");
     }

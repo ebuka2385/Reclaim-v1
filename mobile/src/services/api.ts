@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://172.20.159.217:3000';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:3000';
 const DEFAULT_USER_ID = 'temp-user-id'; // Default user for demo
 
 // Store current userId

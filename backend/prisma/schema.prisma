@@ -1,20 +1,5 @@
 // https://pris.ly/d/prisma-schema
 
-// ============================================================================
-// REQUIRED DATABASE SCHEMA CHANGES - MUST BE COMPLETED FOR APP COMPLETION
-// ============================================================================
-//
-// ALL ITEMS BELOW ARE REQUIRED - Must be completed before app is finished
-//
-//
-//
-// After making ALL changes:
-//   1. Create a new migration: npx prisma migrate dev --name complete_schema_updates
-//   2. Regenerate Prisma client: npx prisma generate
-//   3. Test all functionality (claims, items, categories) to ensure everything works
-//
-// ============================================================================
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -34,6 +19,8 @@ model User {
   claims       Claim[]       @relation("UserClaims")
   messages     Message[]     @relation("UserMessages")
   deviceTokens DeviceToken[]
+
+  @@index([email])
 }
 
 model Item {
@@ -58,12 +45,13 @@ model Item {
 model Notification {
   notifId      String @id @default(cuid())
   userId       String 
-  relatedUser         User @relation(fields : [userId], references : [userId], onDelete: Cascade)
+  relatedUser  User   @relation(fields: [userId], references: [userId], onDelete: Cascade)
   message      String
   timestamp    DateTime @default(now()) 
   read         Boolean @default(false)
 
   @@index([userId])
+  @@index([timestamp])
 }
 
 model Archive {
@@ -71,39 +59,39 @@ model Archive {
   itemId       String
   item         Item     @relation(fields: [itemId], references: [itemId], onDelete: Cascade)
   resolvedTime DateTime @default(now())
-  reason       String? //Optional field
+  reason       String?
 
   @@index([itemId])
 }
 
 model Claim {
-  claimId   String @id @default(cuid())
+  claimId   String      @id @default(cuid())
   itemId    String
   claimerId String
-  finderId  String 
-  handedOff Boolean   @default(false)
+  finderId  String
+  handedOff Boolean     @default(false)
   status    ClaimStatus @default(OPEN)
   description String? 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt 
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt 
 
-  item    Item  @relation(fields: [itemId], references: [itemId], onDelete: Cascade)
-  claimer User  @relation("UserClaims", fields: [claimerId], references: [userId], onDelete: Cascade)
+  item    Item    @relation(fields: [itemId], references: [itemId], onDelete: Cascade)
+  claimer User    @relation("UserClaims", fields: [claimerId], references: [userId], onDelete: Cascade)
   threads Thread[]
 
   @@index([itemId])
   @@index([claimerId])
-  @@index([status])
   @@index([finderId])
+  @@index([status])
 }
 
 model Thread {
-  threadId    String  @id @default(cuid())
+  threadId    String    @id @default(cuid())
   claimId     String  
   claimerId   String  
   finderId    String  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   archived    Boolean   @default(false)
   hidden      Boolean   @default(false)
 
@@ -113,18 +101,20 @@ model Thread {
   @@index([claimId])
   @@index([claimerId])
   @@index([finderId])
+  @@index([archived])
+  @@index([hidden])
 }
 
 model Message {
-  messageId   String @id @default(cuid())
+  messageId   String   @id @default(cuid())
   threadId    String
   userId      String
   text        String
-  createdAt   DateTime    @default(now())
-  read        Boolean     @default(false)
+  createdAt   DateTime @default(now())
+  read        Boolean  @default(false)
 
-  thread      Thread      @relation(fields: [threadId], references: [threadId], onDelete: Cascade)
-  user        User        @relation("UserMessages", fields: [userId], references: [userId], onDelete: Cascade)
+  thread      Thread   @relation(fields: [threadId], references: [threadId], onDelete: Cascade)
+  user        User     @relation("UserMessages", fields: [userId], references: [userId], onDelete: Cascade)
 
   @@index([threadId])
   @@index([userId])
@@ -138,9 +128,9 @@ enum ItemStatus {
 }
 
 enum ClaimStatus {
-  OPEN 
-  ACCEPTED
-  DECLINED
+  OPEN      // Initial status when claim is created
+  ACCEPTED  // When finder approves the claim
+  DECLINED  // When finder denies the claim
 }
 
 model DeviceToken {
@@ -156,4 +146,3 @@ model DeviceToken {
   @@index([userId])
   @@index([token])
 }
-

@@ -27,6 +27,15 @@ export class NotificationService {
       throw new Error("Invalid Expo push token format");
     }
 
+    // Verify user exists before creating/updating device token
+    const user = await prisma.user.findUnique({
+      where: { userId },
+    });
+
+    if (!user) {
+      throw new Error(`User with userId ${userId} does not exist. Please sync user to database first.`);
+    }
+
     // Check if token already exists for this user
     const existingToken = await prisma.deviceToken.findUnique({
       where: { token },
@@ -35,6 +44,13 @@ export class NotificationService {
     if (existingToken) {
       // Update if it belongs to a different user, or update platform if same user
       if (existingToken.userId !== userId) {
+        // Verify the new userId exists
+        const newUser = await prisma.user.findUnique({
+          where: { userId },
+        });
+        if (!newUser) {
+          throw new Error(`User with userId ${userId} does not exist.`);
+        }
         // Token belongs to different user, update it
         return prisma.deviceToken.update({
           where: { token },

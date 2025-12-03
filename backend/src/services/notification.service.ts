@@ -4,9 +4,7 @@
 
 
 import { Expo } from "expo-server-sdk";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "../lib/prisma";
 
 // Create a new Expo SDK client
 const expo = new Expo();

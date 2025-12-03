@@ -6,6 +6,7 @@ import express from "express";
 import cors from "cors";
 import { config } from "dotenv";
 import routes from "./routes";
+import { prisma } from "./lib/prisma";
 
 config();
 
@@ -15,7 +16,20 @@ if (!process.env.GOOGLE_CLIENT_ID) {
   console.warn("   Set GOOGLE_CLIENT_ID in your .env file to enable authentication.");
 }
 
+if (!process.env.DATABASE_URL) {
+  console.error("❌ ERROR: DATABASE_URL is not set!");
+  process.exit(1);
+}
+
 const app = express();
+
+// Test database connection on startup
+prisma.$connect()
+  .then(() => console.log("✅ Database connected"))
+  .catch((err) => {
+    console.error("❌ Database connection failed:", err);
+    process.exit(1);
+  });
 
 // Middleware
 app.use(cors());
@@ -24,9 +38,25 @@ app.use(express.json());
 // Routes
 app.use("/", routes);
 
+// Global error handler
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error("Error:", err);
+  res.status(500).json({ error: "Internal server error" });
+});
+
 const PORT = parseInt(process.env.PORT || "3000", 10);
 
-app.listen(PORT, "0.0.0.0", () => {
+const server = app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on port ${PORT}`);
+});
+
+// Graceful shutdown
+process.on("SIGTERM", async () => {
+  console.log("⚠️  SIGTERM received, shutting down gracefully...");
+  server.close(async () => {
+    await prisma.$disconnect();
+    console.log("✅ Server closed");
+    process.exit(0);
+  });
 });
 

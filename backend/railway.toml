@@ -21,5 +21,6 @@ cmds = [
 ]
 
 [start]
-cmd = "pnpm prisma migrate deploy && pnpm start"
+# ALSO link pnpm again inside the runtime container
+cmd = "ln -sf $HOME/.local/share/pnpm/pnpm /usr/local/bin/pnpm && pnpm prisma migrate deploy && pnpm start"
 

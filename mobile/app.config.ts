@@ -15,6 +15,9 @@ export default ({ config }: ConfigContext) => {
       userInterfaceStyle: "light",
       icon: "./assets/icon.png",
 
+      // CRITICAL for Clerk + Google OAuth
+      scheme: "reclaim",
+
       // CRITICAL: monorepo compatibility
       projectRoot,
 
